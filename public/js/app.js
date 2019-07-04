@@ -2083,8 +2083,8 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 /* harmony default export */ __webpack_exports__["default"] = ({
-  created: function created() {
-    this.$emit("ready");
+  mounted: function mounted() {
+    console.log("Notfound is mounted");
   }
 });
 
@@ -6547,7 +6547,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, "\n#notfound[data-v-a26bf910] {\n  padding-top: -70px;\n\n  width: 100%;\n  background: #fff;\n\n  position: relative;\n  height: 100vh;\n}\n#notfound .notfound[data-v-a26bf910] {\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  -webkit-transform: translate(-50%, -50%);\n  transform: translate(-50%, -50%);\n}\n.notfound[data-v-a26bf910] {\n  max-width: 520px;\n  width: 100%;\n  line-height: 1.4;\n  text-align: center;\n}\n.notfound .notfound-404[data-v-a26bf910] {\n  position: relative;\n  height: 200px;\n  margin: 0px auto 20px;\n  z-index: -1;\n}\n.notfound .notfound-404 h1[data-v-a26bf910] {\n  font-family: \"Montserrat\", sans-serif;\n  font-size: 236px !important;\n  font-weight: 100 !important;\n  margin: 0px;\n  color: #211b19;\n  text-transform: uppercase;\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  -webkit-transform: translate(-50%, -50%);\n  transform: translate(-50%, -50%);\n}\n.notfound .notfound-404 h2[data-v-a26bf910] {\n  font-family: \"Montserrat\", sans-serif;\n  font-size: 28px;\n  font-weight: 400 !important;\n  text-transform: uppercase;\n  color: #211b19;\n  background: #fff;\n  padding: 10px 5px;\n  margin: auto;\n  display: inline-block;\n  position: absolute;\n  bottom: 0px;\n  left: 0;\n  right: 0;\n}\n.notfound a[data-v-a26bf910] {\n  font-family: \"Montserrat\", sans-serif;\n  display: inline-block;\n  font-weight: 700;\n  text-decoration: none;\n  color: #fff;\n  text-transform: uppercase;\n  padding: 13px 23px;\n  background: #27ae61;\n  font-size: 18px;\n  -webkit-transition: 0.2s all;\n  transition: 0.2s all;\n}\n.notfound a[data-v-a26bf910]:hover {\n  color: #27ae61;\n  background: #211b19;\n}\n@media only screen and (max-width: 767px) {\n.notfound .notfound-404 h1[data-v-a26bf910] {\n    font-size: 148px;\n}\n}\n@media only screen and (max-width: 480px) {\n.notfound .notfound-404[data-v-a26bf910] {\n    height: 148px;\n    margin: 0px auto 10px;\n}\n.notfound .notfound-404 h1[data-v-a26bf910] {\n    font-size: 86px;\n}\n.notfound .notfound-404 h2[data-v-a26bf910] {\n    font-size: 16px;\n}\n.notfound a[data-v-a26bf910] {\n    padding: 7px 15px;\n    font-size: 14px;\n}\n}\n", ""]);
+exports.push([module.i, "\n#notfound[data-v-a26bf910] {\n  padding-top: -70px;\n\n  width: 100%;\n  background: rgb(204, 204, 204, 0.1);\n\n  position: relative;\n  height: 100vh;\n}\n#notfound .notfound[data-v-a26bf910] {\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  -webkit-transform: translate(-50%, -50%);\n  transform: translate(-50%, -50%);\n}\n.notfound[data-v-a26bf910] {\n  max-width: 520px;\n  width: 100%;\n  line-height: 1.4;\n  text-align: center;\n}\n.notfound .notfound-404[data-v-a26bf910] {\n  position: relative;\n  height: 200px;\n  margin: 0px auto 20px;\n  z-index: -1;\n}\n.notfound .notfound-404 h1[data-v-a26bf910] {\n  font-family: \"Montserrat\", sans-serif;\n  font-size: 236px !important;\n  font-weight: 100 !important;\n  margin: 0px;\n  color: #211b19;\n  text-transform: uppercase;\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  -webkit-transform: translate(-50%, -50%);\n  transform: translate(-50%, -50%);\n}\n.notfound .notfound-404 h2[data-v-a26bf910] {\n  font-family: \"Montserrat\", sans-serif;\n  font-size: 28px;\n  font-weight: 400 !important;\n  text-transform: uppercase;\n  color: #211b19;\n  background: rgb(254, 254, 254, 0.9);\n  padding: 10px 5px;\n  margin: auto;\n  display: inline-block;\n  position: absolute;\n  bottom: 0px;\n  left: 0;\n  right: 0;\n}\n.notfound a[data-v-a26bf910] {\n  font-family: \"Montserrat\", sans-serif;\n  display: inline-block;\n  font-weight: 700;\n  text-decoration: none;\n  color: #fff;\n  text-transform: uppercase;\n  padding: 13px 23px;\n  background: #27ae61;\n  font-size: 18px;\n  -webkit-transition: 0.2s all;\n  transition: 0.2s all;\n}\n.notfound a[data-v-a26bf910]:hover {\n  color: #27ae61;\n  background: #211b19;\n}\n@media only screen and (max-width: 767px) {\n.notfound .notfound-404 h1[data-v-a26bf910] {\n    font-size: 148px;\n}\n}\n@media only screen and (max-width: 480px) {\n.notfound .notfound-404[data-v-a26bf910] {\n    height: 148px;\n    margin: 0px auto 10px;\n}\n.notfound .notfound-404 h1[data-v-a26bf910] {\n    font-size: 86px;\n}\n.notfound .notfound-404 h2[data-v-a26bf910] {\n    font-size: 16px;\n}\n.notfound a[data-v-a26bf910] {\n    padding: 7px 15px;\n    font-size: 14px;\n}\n}\n", ""]);
 
 // exports
 
@@ -38384,19 +38384,28 @@ var render = function() {
       "div",
       { staticClass: "notfound" },
       [
-        _c("div", { staticClass: "notfound-404" }, [
-          _c("h1", [_vm._v("Oops!")]),
-          _vm._v(" "),
-          _c("h2", [_vm._v("404 - " + _vm._s(_vm.$t("file.notfound")))])
-        ]),
+        _vm._m(0),
         _vm._v(" "),
-        _c("router-link", { attrs: { to: { name: "home" } } }, [_vm._v("Home")])
+        _c("router-link", { attrs: { to: { name: "home" }, exact: "" } }, [
+          _vm._v("Home")
+        ])
       ],
       1
     )
   ])
 }
-var staticRenderFns = []
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "notfound-404" }, [
+      _c("h1", [_vm._v("Oops!")]),
+      _vm._v(" "),
+      _c("h2", [_vm._v("404 - Not Faund")])
+    ])
+  }
+]
 render._withStripped = true
 
 
