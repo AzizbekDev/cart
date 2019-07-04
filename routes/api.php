@@ -1,6 +1,3 @@
 <?php
 
-//
-Route::get('/', function(){
-    return 'hello';
-});
+Route::resource('categories', 'Categories\CategoryController');
