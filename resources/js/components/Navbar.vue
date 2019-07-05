@@ -21,27 +21,40 @@
             <span class="sr-only">(current)</span>
           </router-link>
         </li>
-        <li class="nav-item">
-          <router-link class="nav-link" :to="{name: 'about'}" exact>About</router-link>
-        </li>
-        <li class="nav-item dropdown">
-          <a
-            class="nav-link dropdown-toggle"
-            href="#"
-            id="navbarDropdown"
-            role="button"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >Categores</a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a
-              class="dropdown-item"
-              v-for="category in categories"
-              :key="category.id"
-            >{{ category.name }}</a>
-          </div>
-        </li>
+        <template v-for="category in categories">
+          <template v-if="category.children.length">
+            <li class="nav-item dropdown" :key="category.slug">
+              <router-link
+                class="nav-link dropdown-toggle"
+                :to="{name: 'categories-slug',params:{slug: category.slug}}"
+                id="navbarDropdown"
+                role="button"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+                exact
+              >{{category.name}}</router-link>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <router-link
+                  class="dropdown-item"
+                  v-for="child in category.children"
+                  :to="{name: 'categories-slug',params:{slug: child.slug}}"
+                  :key="child.slug"
+                  exact
+                >{{ child.name }}</router-link>
+              </div>
+            </li>
+          </template>
+          <template v-else>
+            <li class="nav-item" :key="category.slug">
+              <router-link
+                class="nav-link"
+                :to="{name: 'categories-slug',params:{slug: category.slug}}"
+                exact
+              >{{ category.name }}</router-link>
+            </li>
+          </template>
+        </template>
       </ul>
       <ul class="navbar-nav ml-auto">
         <li class="nav-item">

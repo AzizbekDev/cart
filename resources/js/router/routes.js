@@ -1,36 +1,40 @@
 import Home from '../pages/Home'
 import Login from '../pages/Login'
 import About from '../pages/About'
+import Categories from '../pages/categories/_slug'
+import Products from '../pages/products/_slug'
 import NotFound from '../pages/NotFound'
 
 
+
 export default [{
-        path: "/",
-        name: "home",
-        meta: {
-            layout: "no-sidebar"
-        },
-        component: Home
+        path: '/',
+        name: 'home',
+        component: Home,
     },
     {
-        path: "/login",
-        name: "login",
-        meta: {
-            layout: "no-sidebar"
-        },
-        component: Login
-    },
-    {
-        path: "/about-us",
-        name: "about",
-        meta: {
-            layout: "no-sidebar"
-        },
+        path: '/about',
+        name: 'about',
         component: About,
     },
     {
-        path: "*",
-        name: "notFound",
-        component: NotFound
+        path: '/login',
+        name: 'login',
+        component: Login,
+    },
+    {
+        path: '/:slug',
+        name: 'categories-slug',
+        component: Categories
+    },
+    {
+        path: '/products/:slug',
+        name: 'products-slug',
+        component: Products
+    },
+    {
+        path: '*',
+        name: 'notFound',
+        component: NotFound,
     }
-];
+]
