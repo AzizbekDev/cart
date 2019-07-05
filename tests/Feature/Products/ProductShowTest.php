@@ -15,7 +15,7 @@ class ProductShowTest extends TestCase
         $this->json('GET','api/products/nope')->assertStatus(404);
     }
 
-    public function test_it_shows_a_products()
+    public function test_it_shows_a_product()
     {
         $product = factory(Product::class)->create();
         
