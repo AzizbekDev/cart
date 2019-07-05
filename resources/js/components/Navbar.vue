@@ -35,8 +35,11 @@
             aria-expanded="false"
           >Categores</a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="#">Action</a>
-            <a class="dropdown-item" href="#">Another action</a>
+            <a
+              class="dropdown-item"
+              v-for="category in categories"
+              :key="category.id"
+            >{{ category.name }}</a>
           </div>
         </li>
       </ul>
@@ -60,6 +63,14 @@
 </template>
 <script>
 export default {
-  //
+  name: "navbar",
+  mounted() {
+    this.$store.dispatch("fetchCategories");
+  },
+  computed: {
+    categories() {
+      return this.$store.getters.categories;
+    }
+  }
 };
 </script>
