@@ -1,7 +1,8 @@
 <template>
-  <div class="container">
-    <p>Home Layout</p>
-    <slot />
+  <div class="section">
+    <div class="container">
+      <p>Home Layout</p>
+    </div>
   </div>
 </template>
 <script>

@@ -23,7 +23,7 @@ export default [{
         component: Login,
     },
     {
-        path: '/:slug',
+        path: '/categories/:slug',
         name: 'categories-slug',
         component: Categories
     },

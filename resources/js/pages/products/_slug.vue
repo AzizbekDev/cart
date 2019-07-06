@@ -6,10 +6,10 @@
       </div>
       <div class="col">
         <div class="card-detail">
-          <div class="card-title">
+          <div class="card-title" v-if="product.name">
             <h3>{{ product.name }}</h3>
           </div>
-          <div class="card-price">
+          <div class="card-price" v-if="product.price">
             <b>Price:</b>
             {{ product.price }}$
           </div>
@@ -26,15 +26,14 @@
 export default {
   data() {
     return {
-      product: null
+      product: []
     };
   },
-  created() {
-    axios
-      .get(`http://ecommerce.test/api/products/${this.$route.params.slug}`)
-      .then(response => {
-        this.product = response.data.data;
-      });
+  mounted() {
+    let uri = `/api/products/${this.$route.params.slug}`;
+    axios.get(uri).then(response => {
+      this.product = response.data.data;
+    });
   }
 };
 </script>
