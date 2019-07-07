@@ -5,7 +5,7 @@
       <h5 class="card-title">{{ product.name }}</h5>
       <p class="card-text">
         <b>Price:</b>
-        {{ product.price }}$
+        {{ product.price }}
       </p>
       <center>
         <router-link

@@ -11,7 +11,7 @@
           </div>
           <div class="card-price" v-if="product.price">
             <b>Price:</b>
-            {{ product.price }}$
+            {{ product.price }}
           </div>
           <div class="card-text" v-if="product.description">
             <p>{{ product.description}}.</p>
