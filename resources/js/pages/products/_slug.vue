@@ -17,7 +17,6 @@
             <div class="card-text" v-if="product.description">
               <p>{{ product.description}}.</p>
             </div>
-            <button class="btn btn-primary">Add to cart</button>
           </div>
         </div>
       </div>
@@ -29,7 +28,19 @@
           :type="type"
           :key="type"
           :variations="variations"
+          v-model="form.variation"
         />
+
+        <div class="input-group mt-5" v-if="form.variation">
+          <select class="custom-select" aria-label="quantity">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+          <div class="input-group-append">
+            <button class="btn btn-outline-primary" type="button">Add to cart</button>
+          </div>
+        </div>
       </form>
     </div>
   </div>
@@ -39,7 +50,11 @@ import ProductVariation from "../../components/products/ProductVariation";
 export default {
   data() {
     return {
-      product: []
+      product: [],
+      form: {
+        variation: "",
+        quantity: 1
+      }
     };
   },
   components: {
@@ -59,9 +74,6 @@ export default {
 }
 .card-detail {
   padding: 10px;
-}
-.card-detail button {
-  margin-top: 10px;
 }
 .card-title {
   padding-bottom: 10px;
