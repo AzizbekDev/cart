@@ -20,7 +20,8 @@ class ProductIndexTest extends TestCase
 
     public function test_it_has_paginated_data()
     {
-        $this->json('GET','api/products')->assertJsonStructure([
+        $this->json('GET','api/products')
+        ->assertJsonStructure([
             'meta'
         ]);
     }

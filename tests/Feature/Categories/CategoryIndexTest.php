@@ -3,6 +3,7 @@
 namespace Tests\Feature\Categories;
 
 use Tests\TestCase;
+use App\Models\Category;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -18,7 +19,7 @@ class CategoryIndexTest extends TestCase
         $response = $this->json('GET','api/categories');
 
         $categories->each(function($category) use ($response){
-            $response->assertJsonFreagment([
+            $response->assertJsonFragment([
                 'slug' => $category->slug
             ]);
         });
