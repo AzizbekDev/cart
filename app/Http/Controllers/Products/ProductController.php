@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Products;
 
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Scoping\Scopes\CategoryScope;
@@ -14,6 +15,11 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::withScopes($this->scopes())->paginate(10);
+        if(!$products->count() && request()->get('category'))
+        {
+            $category = Category::whereSlug(request()->category)->first();
+            return ProductIndexResource::collection($category->chaildProducts()->paginate(10));
+        }
         return ProductIndexResource::collection($products);
     }
 

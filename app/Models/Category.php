@@ -6,10 +6,11 @@ use App\Models\Product;
 use App\Models\Traits\HasChildren;
 use App\Models\Traits\IsOrderable;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasChaildProducts;
 
 class Category extends Model
 {
-    use HasChildren, IsOrderable;
+    use HasChildren, IsOrderable, HasChaildProducts;
     
     protected $fillable = [
         'name',
