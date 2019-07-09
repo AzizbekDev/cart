@@ -1,20 +1,14 @@
 require('./bootstrap');
-window.Vue = require('vue');
-
+import Vue from 'vue'
 import router from './router'
-
+import store from './store'
 import App from "./App.vue";
-
-import Default from './layouts/Default.vue';
-
-import NoSidebar from './layouts/NoSidebar.vue';
-
-Vue.component('default-layout', Default);
-
-Vue.component('no-sidebar-layout', NoSidebar);
-
+// window.Vue = require('vue');
+// window.axios = require('axios');
+Vue.use(store)
 Vue.config.productionTip = false;
 
-const app = new Vue(Vue.util.extend({
+new Vue(Vue.util.extend({
+    store,
     router
 }, App)).$mount('#app');

@@ -1,3 +1,7 @@
+/**
+ * Via axios get all categories
+ * @return {response.data} 
+ */
 export const fetchCategories = ({
     commit
 }) => {
