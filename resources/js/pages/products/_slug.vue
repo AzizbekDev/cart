@@ -17,6 +17,7 @@
             <div class="card-text" v-if="product.description">
               <p>{{ product.description}}.</p>
             </div>
+            <span class="badge badge-warning" v-if="!product.in_stock">Out of stock</span>
           </div>
         </div>
       </div>
