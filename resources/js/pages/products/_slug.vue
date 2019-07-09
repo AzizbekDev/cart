@@ -31,12 +31,9 @@
           :variations="variations"
           v-model="form.variation"
         />
-
         <div class="input-group mt-5" v-if="form.variation">
-          <select class="custom-select" aria-label="quantity">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
+          <select class="custom-select" v-model="form.quantity">
+            <option :value="x" v-for="x in parseInt(form.variation.stock_count)" :key="x">{{ x }}</option>
           </select>
           <div class="input-group-append">
             <button class="btn btn-outline-primary" type="button">Add to cart</button>
@@ -57,6 +54,11 @@ export default {
         quantity: 1
       }
     };
+  },
+  watch: {
+    "form.variation"() {
+      this.form.quantity = 1;
+    }
   },
   components: {
     ProductVariation
