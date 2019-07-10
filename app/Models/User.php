@@ -37,6 +37,16 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    
+    public static function boot()
+    {
+        parent::boot();
+        static::creating(function($user){
+            $user->password = bcrypt($user->password);
+        });
+    }
+
+
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
