@@ -12,7 +12,7 @@ class RegisterController extends Controller
 {
     public function action(RegisterRequest $request)
     {
-        $user = User::create($request->only(['email', 'name', 'password']));
+        $user = User::create($request->only('email', 'name', 'password'));
         return new PrivateUserResource($user);
     }
 }
