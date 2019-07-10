@@ -14,11 +14,11 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::withScopes($this->scopes())->paginate(10);
+        $products = Product::with(['variations.stock'])->withScopes($this->scopes())->paginate(10);
         
         if(!$products->count() && request()->get('category'))
         {
-            $category = Category::whereSlug(request()->category)->firstOrFail();
+            $category = Category::with(['children.products','children.products.variations.stock'])->whereSlug(request()->category)->firstOrFail();
             return ProductIndexResource::collection($category->chaildProducts()->paginate(10));
         }
         return ProductIndexResource::collection($products);
@@ -26,6 +26,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
+        $product->load(['variations.stock','variations.product','variations.type']);
         return new ProductResource($product);
     }
 
