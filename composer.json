@@ -13,7 +13,8 @@
         "fideloper/proxy": "^4.0",
         "laravel/framework": "5.8.*",
         "laravel/tinker": "^1.0",
-        "moneyphp/money": "^3.2"
+        "moneyphp/money": "^3.2",
+        "tymon/jwt-auth": "^1.0.0-rc.4.1"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.2",
