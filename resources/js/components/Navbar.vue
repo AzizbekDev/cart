@@ -67,9 +67,39 @@
             />
           </form>
         </li>
-        <li class="nav-item">
-          <router-link class="btn btn-light" :to="{name: 'login'}" exact>Login</router-link>
-        </li>
+        <template v-if="!currentUser">
+          <li class="nav-item">
+            <router-link class="btn btn-light" :to="{name: 'login'}" exact>Login</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="btn btn-light" :to="{name: 'login'}" exact>Register</router-link>
+          </li>
+        </template>
+        <template v-else>
+          <li class="nav-item">
+            <router-link class="btn btn-light" to="/order" exact>Order</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="btn btn-light" to="/cart" exact>Cart (0)</router-link>
+          </li>
+          <li class="nav-item dropdown">
+            <a
+              href="#"
+              class="nav-link dropdown-toggle btn btn-light"
+              id="userDropdown"
+              role="button"
+              data-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              {{ currentUser.name }}
+              <span class="caret"></span>
+            </a>
+            <div class="dropdown-menu" area-lablledby="userDropdown">
+              <a href="#" @click.prevent="logout" class="dropdown-item">Logout</a>
+            </div>
+          </li>
+        </template>
       </ul>
     </div>
   </nav>
@@ -77,12 +107,21 @@
 <script>
 export default {
   name: "navbar",
+  methods: {
+    logout() {
+      this.$store.commit("logout");
+      this.$router.push("/login");
+    }
+  },
   mounted() {
     this.$store.dispatch("fetchCategories");
   },
   computed: {
     categories() {
       return this.$store.getters.categories;
+    },
+    currentUser() {
+      return this.$store.getters.currentUser;
     }
   }
 };
