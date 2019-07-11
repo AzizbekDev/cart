@@ -1,16 +1,17 @@
 import Home from '../pages/Home'
-import Login from '../pages/Login'
+import Login from '../pages/auth/Login'
 import About from '../pages/About'
 import Categories from '../pages/categories/_slug'
 import Products from '../pages/products/_slug'
 import NotFound from '../pages/NotFound'
 
-
-
 export default [{
         path: '/',
         name: 'home',
         component: Home,
+        meta: {
+            requiresAuth: false
+        }
     },
     {
         path: '/about',

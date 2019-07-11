@@ -1,3 +1,12 @@
+import {
+    getLocalUser
+} from '../helpers/index'
+const user = getLocalUser()
+
 export default {
-    categories: []
+    categories: [],
+    currentUser: user,
+    isLoggedIn: !!user,
+    loading: false,
+    auth_error: null
 }

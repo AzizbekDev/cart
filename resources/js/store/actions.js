@@ -9,3 +9,10 @@ export const fetchCategories = ({
         commit('setCategories', response.data.data)
     })
 }
+
+
+export const login = ({
+    commit
+}) => {
+    return commit('login');
+}
