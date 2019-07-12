@@ -32,7 +32,12 @@
             placeholder="Password"
           />
         </div>
-        <button type="submit" class="btn btn-primary">Sign in</button>
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary">Sign in</button>
+        </div>
+        <div class="form-group" v-if="authError">
+          <p class="error">{{ authError }}</p>
+        </div>
       </form>
     </div>
   </div>
@@ -62,8 +67,15 @@ export default {
         });
     }
   },
-  created() {
-    console.log(this.$store.state.isLoggedIn);
+  computed: {
+    authError() {
+      return this.$store.getters.authError;
+    }
   }
 };
 </script>
+<style scoped>
+.error {
+  color: red;
+}
+</style>
