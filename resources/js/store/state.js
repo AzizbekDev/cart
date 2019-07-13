@@ -8,5 +8,10 @@ export default {
     currentUser: user,
     isLoggedIn: !!user,
     loading: false,
-    auth_error: ''
+    auth_error: '',
+    cart: {
+        total: null,
+        quantity: null,
+        products: []
+    }
 }

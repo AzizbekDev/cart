@@ -1,3 +1,7 @@
+import {
+    isEmpty
+} from 'lodash'
+
 /**
  * Login request
  *
@@ -21,4 +25,11 @@ export function getLocalUser() {
         return null;
     }
     return JSON.parse(userStr);
+}
+
+export const setHttpToken = (token) => {
+    if (isEmpty(token)) {
+        window.axios.defaults.headers.common['Authorization'] = null
+    }
+    window.axios.defaults.headers.common['Authorization'] = 'Bearer ' + token
 }

@@ -16,3 +16,11 @@ export const currentUser = (state) => {
 export const authError = (state) => {
     return state.auth_error
 }
+
+export const cart = (state) => {
+    return state.cart
+}
+
+export const countCart = (state) => {
+    return state.cart.products.length
+}

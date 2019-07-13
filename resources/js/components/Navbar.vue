@@ -80,7 +80,7 @@
             <router-link class="btn btn-light" to="/order" exact>Order</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="btn btn-light" to="/cart" exact>Cart (0)</router-link>
+            <router-link class="btn btn-light" to="/cart" exact>Cart ({{ countCart }})</router-link>
           </li>
           <li class="nav-item dropdown">
             <a
@@ -109,7 +109,7 @@ export default {
   name: "navbar",
   methods: {
     logout() {
-      this.$store.commit("logout");
+      this.$store.dispatch("clearAuth");
       this.$router.push("/login");
     }
   },
@@ -122,6 +122,9 @@ export default {
     },
     currentUser() {
       return this.$store.getters.currentUser;
+    },
+    countCart() {
+      return this.$store.getters.countCart;
     }
   }
 };
