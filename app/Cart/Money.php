@@ -9,16 +9,16 @@ use Money\Formatter\IntlMoneyFormatter;
 
 class Money
 {
-    private static $money;
+    protected $money;
 
     public function __construct($value)
     {
-        self::$money = new BaseMoney($value, new Currency('GBP'));
+        $this->money = new BaseMoney($value, new Currency('GBP'));
     }
 
     public function amount()
     {
-        return self::$money->getAmount();
+        return $this->money->getAmount();
     }
 
     public function formatted()
@@ -28,6 +28,6 @@ class Money
             new ISOCurrencies()
         );
         
-        return $formatter->format(self::$money);
+        return $formatter->format($this->money);
     }
 }

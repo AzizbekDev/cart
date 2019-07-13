@@ -91,6 +91,5 @@ class CartTest extends TestCase
         $cart->empty();
 
         $this->assertCount(0, $user->fresh()->cart);
-
     }
 }
