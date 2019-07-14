@@ -105,6 +105,7 @@
   </nav>
 </template>
 <script>
+import { mapGetters } from "vuex";
 export default {
   name: "navbar",
   methods: {
@@ -115,17 +116,17 @@ export default {
   },
   mounted() {
     this.$store.dispatch("fetchCategories");
+    if (this.$store.getters.isLoggedIn) {
+      this.$store.dispatch("setToken", this.$store.getters.currentUser.token);
+      this.$store.dispatch("getCart");
+    }
   },
   computed: {
-    categories() {
-      return this.$store.getters.categories;
-    },
-    currentUser() {
-      return this.$store.getters.currentUser;
-    },
-    countCart() {
-      return this.$store.getters.countCart;
-    }
+    ...mapGetters({
+      categories: "categories",
+      currentUser: "currentUser",
+      countCart: "countCart"
+    })
   }
 };
 </script>

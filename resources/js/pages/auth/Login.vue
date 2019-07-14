@@ -60,8 +60,6 @@ export default {
       login(this.$data.form)
         .then(res => {
           this.$store.commit("loginSuccess", res);
-          this.$store.dispatch("setToken", res.meta.token);
-          this.$store.dispatch("getCart");
           this.$router.push({ path: "/" });
         })
         .catch(error => {
