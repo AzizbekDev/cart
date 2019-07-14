@@ -36,7 +36,7 @@ export const checkTokenExists = ({
     commit,
     dispatch
 }, token) => {
-    return localStorage.getItem('token').then((token) => {
+    localStorage.getItem('token').then((token) => {
         if (isEmpty(token)) {
             return Promise.reject('NO_TOKEN');
         }
