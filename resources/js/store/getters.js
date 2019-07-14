@@ -21,6 +21,10 @@ export const cart = (state) => {
     return state.cart
 }
 
+export const cartProducts = (state) => {
+    return state.cart.products
+}
+
 export const countCart = (state) => {
     return state.cart.products.length
 }
