@@ -36,6 +36,11 @@ class Cart
         $this->user->cart()->detach();
     }
 
+    public function isEmpty()
+    {
+        return $this->user->cart->sum("pivot.quantity") === 0;
+    }
+
     protected function getStorePeyload($products)
     {
         return collect($products)->keyBy('id')->map(function ($product){
