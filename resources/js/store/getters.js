@@ -28,3 +28,7 @@ export const cartProducts = (state) => {
 export const countCart = (state) => {
     return state.cart.products.length
 }
+
+export const cartEmpty = (state) => {
+    return state.cart.empty
+}

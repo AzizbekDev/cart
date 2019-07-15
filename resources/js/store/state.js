@@ -12,6 +12,7 @@ export default {
     cart: {
         total: null,
         quantity: null,
+        empty: true,
         products: []
     }
 }

@@ -6,20 +6,32 @@
           <h4 class="m-auto">Your cart</h4>
         </div>
         <div class="card-body">
-          <CartOverview />
+          <template v-if="products.length">
+            <CartOverview />
+          </template>
+          <template v-else>
+            <p>Your cart is empty</p>
+          </template>
         </div>
         <div class="card-footer">
-          <button class="btn btn-primary btn-block btn-sm">Checkout</button>
+          <button class="btn btn-primary btn-block btn-sm" v-if="!empty">Checkout</button>
         </div>
       </div>
     </div>
   </div>
 </template>
 <script>
+import { mapGetters } from "vuex";
 import CartOverview from "../../components/cart/CartOverview";
 export default {
   components: {
     CartOverview
+  },
+  computed: {
+    ...mapGetters({
+      empty: "cartEmpty",
+      products: "cartProducts"
+    })
   }
 };
 </script>

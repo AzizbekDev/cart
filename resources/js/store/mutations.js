@@ -43,3 +43,6 @@ export const logout = (state) => {
 export const setCartProducts = (state, products) => {
     state.cart.products = products
 }
+export const setEmpty = (state, empty) => {
+    state.cart.empty = empty
+}
