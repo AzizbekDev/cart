@@ -10,9 +10,10 @@ export default {
     loading: false,
     auth_error: '',
     cart: {
-        total: null,
         quantity: null,
         empty: true,
+        subtotal: null,
+        total: null,
         products: []
     }
 }

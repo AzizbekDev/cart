@@ -32,3 +32,11 @@ export const countCart = (state) => {
 export const cartEmpty = (state) => {
     return state.cart.empty
 }
+
+export const cartSubtotal = (state) => {
+    return state.cart.subtotal
+}
+
+export const cartTotal = (state) => {
+    return state.cart.total
+}

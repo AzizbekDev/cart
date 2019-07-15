@@ -46,3 +46,11 @@ export const setCartProducts = (state, products) => {
 export const setEmpty = (state, empty) => {
     state.cart.empty = empty
 }
+
+export const setSubtotal = (state, subtotal) => {
+    state.cart.subtotal = subtotal
+}
+
+export const setTotal = (state, total) => {
+    state.cart.total = total
+}

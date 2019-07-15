@@ -57,8 +57,9 @@ export const getCart = ({
 }) => {
     return axios.get('/api/cart').then((response) => {
         commit('setCartProducts', response.data.data.products)
-        console.log(response.data.meta.empty)
         commit('setEmpty', response.data.meta.empty)
+        commit('setSubtotal', response.data.meta.subtotal)
+        commit('setTotal', response.data.meta.total)
     })
 }
 
