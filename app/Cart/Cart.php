@@ -1,6 +1,7 @@
 <?php
 namespace App\Cart;
 
+use App\Cart\Money;
 use App\Models\User;
 
 class Cart
@@ -39,6 +40,20 @@ class Cart
     public function isEmpty()
     {
         return $this->user->cart->sum("pivot.quantity") === 0;
+    }
+
+    public function subtotal()
+    {
+        $subtotal = $this->user->cart->sum(function($product){
+            return $product->price->amount() * $product->pivot->quantity;
+        });
+
+        return new Money($subtotal);
+    }
+
+    public function total()
+    {
+        return $this->subtotal();
     }
 
     protected function getStorePeyload($products)
