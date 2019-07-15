@@ -59,3 +59,10 @@ export const getCart = ({
         commit('setCartProducts', response.data.data.products)
     })
 }
+
+export const destroyCart = ({
+    dispatch
+}, productId) => {
+    let response = axios.delete(`/api/cart/${productId}`);
+    dispatch('getCart');
+}
