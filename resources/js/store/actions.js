@@ -66,3 +66,15 @@ export const destroyCart = ({
     let response = axios.delete(`/api/cart/${productId}`);
     dispatch('getCart');
 }
+
+export const updateCart = ({
+    dispatch
+}, {
+    productId,
+    quantity
+}) => {
+    let response = axios.patch(`/api/cart/${productId}`, {
+        quantity
+    });
+    dispatch('getCart');
+}

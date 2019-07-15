@@ -5,8 +5,8 @@
     </td>
     <td>{{ product.products.name }} / {{ product.name }}</td>
     <td width="120">
-      <select class="custom-select">
-        <option selected value="0">0</option>
+      <select class="custom-select" v-model="quantity">
+        <option value="0" v-if="product.quantity == 0">0</option>
         <option
           :value="x"
           v-for="x in product.stock_count"
@@ -24,15 +24,26 @@
 <script>
 import { mapActions } from "vuex";
 export default {
+  data() {
+    return {
+      quantity: this.product.quantity
+    };
+  },
   props: {
     product: {
       required: true,
       type: Object
     }
   },
+  watch: {
+    quantity(quantity) {
+      this.update({ productId: this.product.id, quantity });
+    }
+  },
   methods: {
     ...mapActions({
-      destroy: "destroyCart"
+      destroy: "destroyCart",
+      update: "updateCart"
     }),
     productDestroy(productId) {
       if (confirm("Are you sure?")) {
