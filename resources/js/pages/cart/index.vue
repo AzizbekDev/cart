@@ -18,7 +18,11 @@
           </template>
         </div>
         <div class="card-footer">
-          <button class="btn btn-primary btn-block btn-sm" v-if="!empty">Checkout</button>
+          <router-link
+            :to="{name: 'checkout'}"
+            class="btn btn-primary btn-block btn-sm"
+            v-if="!empty"
+          >Checkout</router-link>
         </div>
       </div>
     </div>

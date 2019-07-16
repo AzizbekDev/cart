@@ -3,6 +3,7 @@ import Login from '../pages/auth/Login'
 import About from '../pages/About'
 import Categories from '../pages/categories/_slug'
 import Cart from '../pages/cart'
+import Checkout from '../pages/checkout'
 import Products from '../pages/products/_slug'
 import NotFound from '../pages/NotFound'
 
@@ -56,6 +57,15 @@ export default [{
         path: '/cart',
         name: 'cart',
         component: Cart,
+        meta: {
+            guest: false,
+            needsAuth: true
+        }
+    },
+    {
+        path: '/checkout',
+        name: 'checkout',
+        component: Checkout,
         meta: {
             guest: false,
             needsAuth: true

@@ -69,7 +69,6 @@ export default {
       store: "storeCart"
     }),
     add() {
-      console.log("test");
       this.store([
         {
           id: this.form.variation.id,
