@@ -82,3 +82,13 @@ export const updateCart = ({
     });
     dispatch('getCart');
 }
+
+export const storeCart = ({
+    dispatch
+}, products) => {
+    let response = axios.post('/api/cart', {
+        products
+    })
+    dispatch('getCart');
+
+}

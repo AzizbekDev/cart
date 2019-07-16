@@ -23,7 +23,7 @@
       </div>
     </div>
     <div class="card-footer" v-show="product.variations">
-      <form>
+      <form @submit.prevent="add">
         <ProductVariation
           v-for="(variations, type) in product.variations"
           :type="type"
@@ -36,7 +36,7 @@
             <option :value="x" v-for="x in parseInt(form.variation.stock_count)" :key="x">{{ x }}</option>
           </select>
           <div class="input-group-append">
-            <button class="btn btn-outline-primary" type="button">Add to cart</button>
+            <button class="btn btn-outline-primary" type="submit">Add to cart</button>
           </div>
         </div>
       </form>
@@ -44,6 +44,7 @@
   </div>
 </template>
 <script>
+import { mapActions } from "vuex";
 import ProductVariation from "../../components/products/ProductVariation";
 export default {
   data() {
@@ -62,6 +63,25 @@ export default {
   },
   components: {
     ProductVariation
+  },
+  methods: {
+    ...mapActions({
+      store: "storeCart"
+    }),
+    add() {
+      console.log("test");
+      this.store([
+        {
+          id: this.form.variation.id,
+          quantity: this.form.quantity
+        }
+      ]);
+
+      this.form = {
+        variation: "",
+        quantity: 1
+      };
+    }
   },
   mounted() {
     let uri = `/api/products/${this.$route.params.slug}`;
