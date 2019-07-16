@@ -20,7 +20,6 @@ class CartProductVariationResource extends ProductVariationResource
             'products' => new ProductIndexResource($this->product),
             'quantity' => $this->pivot->quantity,
             'total' => $this->getTotal()->formatted()
-
         ]);
     }
 
