@@ -3,7 +3,7 @@
     <td width="150">
       <img src="/images/placeholder120.png" alt="img" />
     </td>
-    <td>{{ product.products.name }} / {{ product.name }}</td>
+    <td>{{ product.products.name }} / {{ product.type }} / {{ product.name }}</td>
     <td width="120">
       <select class="custom-select" v-model="quantity">
         <option value="0" v-if="product.quantity == 0">0</option>
