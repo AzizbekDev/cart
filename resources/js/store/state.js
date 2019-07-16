@@ -14,6 +14,7 @@ export default {
         empty: true,
         subtotal: null,
         total: null,
-        products: []
+        products: [],
+        changed: false
     }
 }

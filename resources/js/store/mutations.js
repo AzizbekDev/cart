@@ -54,3 +54,7 @@ export const setSubtotal = (state, subtotal) => {
 export const setTotal = (state, total) => {
     state.cart.total = total
 }
+
+export const setChanged = (state, changed) => {
+    state.cart.changed = changed
+}

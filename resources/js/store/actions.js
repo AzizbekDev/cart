@@ -60,6 +60,7 @@ export const getCart = ({
         commit('setEmpty', response.data.meta.empty)
         commit('setSubtotal', response.data.meta.subtotal)
         commit('setTotal', response.data.meta.total)
+        commit('setChanged', response.data.meta.changed)
     })
 }
 

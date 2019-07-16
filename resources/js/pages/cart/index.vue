@@ -1,6 +1,10 @@
 <template>
   <div class="section cart-wrapper">
     <div class="container">
+      <div class="alert alert-warning alert-dismissible fade show" v-if="changed">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>Warning!</strong> The Product has been changed.
+      </div>
       <div class="card">
         <div class="card-header">
           <h4 class="m-auto">Your cart</h4>
@@ -30,7 +34,8 @@ export default {
   computed: {
     ...mapGetters({
       empty: "cartEmpty",
-      products: "cartProducts"
+      products: "cartProducts",
+      changed: "cartChanged"
     })
   }
 };

@@ -40,3 +40,7 @@ export const cartSubtotal = (state) => {
 export const cartTotal = (state) => {
     return state.cart.total
 }
+
+export const cartChanged = (state) => {
+    return state.cart.changed
+}
