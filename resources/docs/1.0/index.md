@@ -1,2 +1,4 @@
 - ## Get Started
     - [Overview](/{{route}}/{{version}}/overview)
+    - [Installing](/{{route}}/{{version}}/installization)
+    - [Notes](/{{route}}/{{version}}/notes)
