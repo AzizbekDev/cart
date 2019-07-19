@@ -2,7 +2,6 @@
   <table class="table table-hover">
     <tbody>
       <CartOverViewPorduct v-for="product in products" :key="product.id" :product="product" />
-
       <tr>
         <td></td>
         <td></td>
@@ -30,3 +29,4 @@ export default {
   }
 };
 </script>
+

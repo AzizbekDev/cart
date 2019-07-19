@@ -3,35 +3,35 @@
     <div class="container">
       <div class="row py-5">
         <div class="col-md-8 order-md-1">
-          <h4 class="mb-3">Billing address</h4>
+          <h3 class="text-muted pt-2 mb-3">Billing address</h3>
           <form class="needs-validation" novalidate>
             <ShippingAddress :addresses="address"></ShippingAddress>
-            <hr class="mb-4" />
-            <div class="cart-overview border border-info p-2" v-if="products.length">
-              <h3 class="text-muted pt-2 mb-2">Your cart</h3>
-              <CartOverView>
-                <template slot="rows">
-                  <tr>
-                    <td></td>
-                    <td></td>
-                    <td class="font-weight-bold">Shipping</td>
-                    <td>£0.00</td>
-                    <td></td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td></td>
-                    <td></td>
-                    <td class="font-weight-bold">Total</td>
-                    <td>{{ total }}</td>
-                    <td></td>
-                    <td></td>
-                  </tr>
-                </template>
-              </CartOverView>
+            <div class="cart-overview" v-if="products.length">
+              <h3 class="text-muted pt-2 mb-3">Your cart</h3>
+              <article class="pl-4">
+                <CartOverView>
+                  <template slot="rows">
+                    <tr>
+                      <td></td>
+                      <td></td>
+                      <td class="font-weight-bold">Shipping</td>
+                      <td>£0.00</td>
+                      <td></td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td></td>
+                      <td></td>
+                      <td class="font-weight-bold">Total</td>
+                      <td>{{ total }}</td>
+                      <td></td>
+                      <td></td>
+                    </tr>
+                  </template>
+                </CartOverView>
+              </article>
             </div>
-            <hr class="mb-4" />
-            <button class="btn btn-primary btn-lg btn-block" type="submit" :disabled="empty">
+            <button class="btn btn-primary btn-sm btn-block" type="submit" :disabled="empty">
               <i class="fa fa-credit-card"></i> Continue to checkout
             </button>
           </form>
@@ -75,3 +75,9 @@ export default {
   }
 };
 </script>
+<style scoped>
+article {
+  border-left: 1px solid gray;
+}
+</style>
+
