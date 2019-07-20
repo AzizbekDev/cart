@@ -1,4 +1,4 @@
-# Lessons from 72 to 81
+# Episodes from 72 to 81
 
 - [72-Country dropdown selector](#section-1)
 - [73-Creating Shipping methods](#section-2)
@@ -13,49 +13,52 @@
 
 <a name="section-1"></a>
 
-## Lesson-72 Country dropdown selector
+## Episode-72 Country dropdown selector
 
-`Create new file resources/js/components/form/CountryDropdown.vue`
+`1` - Create new file `resources/js/components/form/CountryDropdown.vue`
 
-```vue
+```js
 <template>
-    <select @change="changed">
-        <option value="">Please select country</option>
-        <option :value="country.id" v-for="country in countries" :key="country.id">
-            {{ country.name }}
-        </option>
-    </select>
+  <select @change="changed" class="form-control">
+    <option value>Please select country</option>
+    <option 
+    :value="country.id" 
+    v-for="country in countries" 
+    :key="country.id">
+    { country.name }
+    </option>
+  </select>
 </template>
 <script>
-export default{
-    data(){
-        return{
-            countries: []
-        }
+export default {
+  data() {
+    return {
+      countries: []
+    };
+  },
+  methods: {
+    async getCountries() {
+      let response = await axios.get("api/countries");
+      this.countries = response.data.data;
     },
-    methods:{
-        async getCountries(){
-            let response = await axios.get('api/countries');
-            this.countries = response.data.data;
-        },
-        changed($event){
-            this.$emit('input', $event.target.value)
-        }
-    },
-    created(){
-        this.getCountries();
+    changed($event) {
+      this.$emit("input", $event.target.value);
     }
-}
+  },
+  created() {
+    this.getCountries();
+  }
+};
 </script>
 ```
 
-`Edit ../components/checkout/addresses/ShippingAddressCreator.vue`
+`2` - Edit `resources/js/components/checkout/addresses/ShippingAddressCreator.vue`
 
-```vue\
+```js
 <template>
   ...
     <div class="form-group">
-      <label class="lable">Country</label>
+      <label class="lable">Country-Name</label>
       <CountryDropdown v-model="form.country_id"/>
     </div>
   ...
@@ -87,6 +90,7 @@ export default {
 };
 </script>
 ```
+
 <a name="section-2"></a>
 
-## Lesson-73 Country dropdown selector
+## Episode-73 Country dropdown selector

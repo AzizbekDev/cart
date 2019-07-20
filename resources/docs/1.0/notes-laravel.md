@@ -1,4 +1,4 @@
-# Common Notes
+# Common Laravel Notes used this porject
 
 ---
 
@@ -10,4 +10,5 @@
 
 ```command
 php artisan make:controller TestController
+
 ```
