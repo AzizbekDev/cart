@@ -95,7 +95,7 @@ export default {
 
 ## Episode-73 Creating Shipping methods
 
-`1` - Create new `ShippingMethod` model with migration
+`1` - Create new Model with Migration files`ShippingMethod`
 
 ```command
 php artisan make:model Models\\ShippingMethod -m
@@ -134,7 +134,7 @@ class ShippingMethod extends Model
 
 ```
 
-`4` - Create new `Factory` for this ShippingMethod model
+`4` - Create new `Factory` file for ShippingMethod Model
 
 ```command
 php artisan make:factory ShippingMethodFactory
@@ -157,7 +157,7 @@ $factory->define(ShippingMethod::class, function (Faker $faker) {
 
 ```
 
-`6` - Create new `UnitTest` for `ShippingMethod` model
+`6` - Create new `UnitTest` file for `ShippingMethod` model
 
 ```command
 php artisan make:test Models\\ShippingMethods\\ShippingMethodTest --unit
@@ -202,7 +202,7 @@ class ShippingMethodTest extends TestCase
 
 ## Episode-74 Hooking up shipping methods to countries
 
-`1` - Create `Country-ShippingMethod` pivot table migration file
+`1` - Create new Migration file `Country-Shipping-Method` this will be a pivot table
 
 ```command
 php artisan make:migration create_country_shipping_method_table --create=country_shipping_method
@@ -287,7 +287,7 @@ use App\Models\Country;
 ...
 ```
 
-`6` - Create new file `CountryTest`
+`6` - Create new Test file `CountryTest`
 
 ```command
 php artisan make:test Models\\Countries\\CountryTest --unit
@@ -315,6 +315,185 @@ class CountryTest extends TestCase
         );
 
         $this->assertInstanceOf(ShippingMethod::class, $country->shippingMethods->first());
+    }
+}
+```
+
+<a name="section-4"></a>
+
+## Episode-75 Getting the right shipping methods for an address
+
+`1` - Create new Controller file `AddressShippingController`
+
+```command
+php artisan make:controller Addresses\\AddressShippingController
+```
+
+`2` - Edit `app/Http/Controllers/Addresses/AddressShippingController.php`
+
+```php
+<?php
+
+namespace App\Http\Controllers\Addresses;
+
+use App\Models\Address;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+class AddressShippingController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware(['auth:api']);
+    }
+    public function action(Address $address)
+    {
+        return ShippingMethodResource::collection(
+            $address->country->shippingMethods
+        );
+    }
+}
+```
+
+`3` - Edit `routes/api.php` add new router for AddressShippingController's an action method
+
+```php
+...
+Route::get('addresses/{address}/shipping', 'Addresses\AddressShippingController@action');
+...
+```
+
+`4` - Create new Resource file `ShippingMethodResource`
+
+```command
+php artisan make:resource ShippingMethodResource 
+```
+
+`5` - Edit `app/Http/Resources/ShippingMethodResource.php`
+
+```php
+...
+  public function toArray($request)
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'price' => $this->formattedPrice
+        ];
+    }
+...
+```
+
+`6` - Create new Policy file `AddressPolicy`
+
+```command
+php artisan make:policy AddressPolicy
+```
+
+`7` - Edit 'app/Providers/AuthServiceProvider.php' register policy just created
+
+```php
+...
+  protected $policies = [
+      'App\Models\Address' => 'App\Policies\AddressPolicy', // registring Policy
+  ];
+...
+```
+
+`8` - Edit `app/Policies/AddressPolicy.php`
+
+```php
+<?php
+
+namespace App\Policies;
+
+use App\Models\User;
+use App\Models\Address;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class AddressPolicy
+{
+    use HandlesAuthorization;
+
+    public function show(User $user, Address $address)
+    {
+        return $user->id == $address->user_id;
+    }
+}
+```
+
+`9` - Edit `app/Http/Controllers/Addresses/AddressShippingController.php`
+
+```php
+...
+ public function action(Address $address)
+    {
+        // using policy if user authenticated and equals address->user_id return true
+        $this->authorize('show', $address); 
+        ...
+    }
+...
+```
+
+`10` - Create new Test file `AddressShippingTest`
+
+```command
+php artisan make:test Addresses\\AddressShippingTest
+```
+
+`11` - Edit `tests/Feature/Addresses/AddressShippingTest.php`
+
+```php
+<?php
+
+namespace Tests\Feature\Addresses;
+
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\Address;
+use App\Models\Country;
+use App\Models\ShippingMethod;
+
+class AddressShippingTest extends TestCase
+{
+    public function test_it_fails_if_the_user_is_not_authenticated()
+    {
+        $this->json('GET', 'api/addresses/1/shipping')
+            ->assertStatus(401);
+    }
+
+    public function test_it_fails_if_the_address_cant_be_found()
+    {
+        $user = factory(User::class)->create();
+        $this->jsonAs($user, 'GET', 'api/addresses/1/shipping')
+            ->assertStatus(404);
+    }
+
+    public function test_it_fails_if_the_address_does_not_belong_to_the_user()
+    {
+        $user = factory(User::class)->create();
+        $address = factory(Address::class)->create([
+            'user_id' => factory(User::class)->create()->id
+        ]);
+
+        $this->jsonAs($user, 'GET', "api/addresses/{$address->id}/shipping")
+            ->assertStatus(403);
+    }
+
+    public function test_it_shows_shipping_methods_for_the_given_address()
+    {
+        $user = factory(User::class)->create();
+        $address = factory(Address::class)->create([
+            'user_id' => $user->id,
+            'country_id' => ($country = factory(Country::class)->create())->id
+        ]);
+        $country->shippingMethods()->save(
+            $shipping = factory(ShippingMethod::class)->create()
+        );
+        $this->jsonAs($user, 'GET', "api/addresses/{$address->id}/shipping")
+            ->assertJsonFragment([
+                'id' => $shipping->id
+          ]);
     }
 }
 ```
