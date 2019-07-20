@@ -197,3 +197,124 @@ class ShippingMethodTest extends TestCase
 }
 
 ```
+
+<a name="section-3"></a>
+
+## Episode-74 Hooking up shipping methods to countries
+
+`1` - Create `Country-ShippingMethod` pivot table migration file
+
+```command
+php artisan make:migration create_country_shipping_method_table --create=country_shipping_method
+```
+
+`2` - Edit `database/migrations/2019_07_26_195923_create_country_shipping_method_table.php`
+
+```php
+...
+public function up()
+  {
+      Schema::create('country_shipping_method', function (Blueprint $table) {
+          $table->bigIncrements('id');
+          $table->bigInteger('country_id')
+            ->unsigned()
+            ->index();
+          $table->bigInteger('shipping_method_id')
+            ->unsigned()
+            ->index();
+      });
+
+      Schema::table('country_shipping_method', function (Blueprint $table) {
+          $table->foreign('country_id')
+            ->references('id')
+            ->on('countries');
+          $table->foreign('shipping_method_id')
+            ->references('id')
+            ->on('shipping_methods');
+      });
+  }
+...
+```
+
+`3` - Edit `app/Models/ShippingMethod.php` 
+
+```php
+<?php
+
+namespace App\Models;
+
+use App\Models\Country;
+...
+    public function countries()
+    {
+        return $this->belongsToMany(Country::class);
+    }
+...
+```
+
+`4` - Edit `app/Models/Country.php`
+
+```php
+<?php
+
+namespace App\Models;
+
+use App\Models\ShippingMethod;
+...
+    public function shippingMethods()
+    {
+        return $this->belongsToMany(ShippingMethod::class);
+    }
+...
+```
+
+`5` - Edit `tests/Unit/Models/ShippingMethods/ShippingMethodTest.php`
+
+```php
+
+use App\Models\Country;
+...
+ public function test_it_belongs_to_many_countries()
+    {
+        $shipping = factory(ShippingMethod::class)->create();
+
+        $shipping->countries()->attach(
+            factory(Country::class)->create()
+        );
+
+        $this->assertInstanceOf(Country::class, $shipping->countries->first());
+    }
+...
+```
+
+`6` - Create new file `CountryTest`
+
+```command
+php artisan make:test Models\\Countries\\CountryTest --unit
+```
+
+`7` - Edit `tests/Unit/Models/Countries/CountryTest.php`
+
+```php
+<?php
+
+namespace Tests\Unit\Models\Countries;
+
+use Tests\TestCase;
+use App\Models\Country;
+use App\Models\ShippingMethod;
+
+class CountryTest extends TestCase
+{
+    public function test_it_has_many_shipping_methods()
+    {
+        $country = factory(Country::class)->create();
+
+        $country->shippingMethods()->attach(
+            factory(ShippingMethod::class)->create()
+        );
+
+        $this->assertInstanceOf(ShippingMethod::class, $country->shippingMethods->first());
+    }
+}
+```
