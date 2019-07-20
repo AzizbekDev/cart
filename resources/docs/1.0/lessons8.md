@@ -93,4 +93,107 @@ export default {
 
 <a name="section-2"></a>
 
-## Episode-73 Country dropdown selector
+## Episode-73 Creating Shipping methods
+
+`1` - Create new `ShippingMethod` model with migration
+
+```command
+php artisan make:model Models\\ShippingMethod -m
+```
+
+`2` - Edit `database/migrations/2019_07_26_190328_create_shipping_methods_table.php`
+
+```php
+...
+public function up()
+    {
+        Schema::create('shipping_methods', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->string('price');
+            $table->timestamps();
+        });
+    }
+...
+```
+
+`3` - Edit `app/Models/ShippingMethod.php`
+
+```php
+<?php
+
+namespace App\Models;
+
+use App\Models\Traits\HasPrice;
+use Illuminate\Database\Eloquent\Model;
+
+class ShippingMethod extends Model
+{
+    use HasPrice;
+}
+
+```
+
+`4` - Create new `Factory` for this ShippingMethod model
+
+```command
+php artisan make:factory ShippingMethodFactory
+```
+
+`5` - Edit `database/factories/ShippingMethodFactory.php`
+
+```php
+<?php
+
+use Faker\Generator as Faker;
+use App\Models\ShippingMethod;
+
+$factory->define(ShippingMethod::class, function (Faker $faker) {
+    return [
+        'name' => 'Royal Mail',
+        'price' => 1000
+    ];
+});
+
+```
+
+`6` - Create new `UnitTest` for `ShippingMethod` model
+
+```command
+php artisan make:test Models\\ShippingMethods\\ShippingMethodTest --unit
+```
+
+`7` - Edit `tests/Unit/Models/ShippingMethods/ShippingMethodTest.php`
+
+```php
+<?php
+
+namespace Tests\Unit\Models\ShippingMethods;
+
+use App\Cart\Money;
+use Tests\TestCase;
+use App\Models\ShippingMethod;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class ShippingMethodTest extends TestCase
+{
+
+    public function test_it_returns_a_money_instance_for_the_price()
+    {
+        $shipping = factory(ShippingMethod::class)->create();
+
+        $this->assertInstanceOf(Money::class, $shipping->price);
+    }
+
+    public function test_it_returns_a_formatted_price()
+    {
+        $shipping = factory(ShippingMethod::class)->create([
+            'price' => 0
+        ]);
+
+        $this->assertEquals($shipping->formattedPrice, '£0.00');
+    }
+}
+
+```
