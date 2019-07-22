@@ -565,3 +565,56 @@ watch: {
     }
   },
 ```
+<a name="section-6"></a>
+
+## Episode-77 Outputting available shipping methods
+
+`1` - Edit `resources/js/pages/checkout/index.vue`
+
+- adding __Shipping__ section
+
+```vue
+...
+  <article class="pl-4">
+    <h3 class="text-muted pt-2 mb-3">Shipping</h3>
+    <div class="form-group">
+      <select class="form-control" v-model="form.shipping_method_id">
+        <option
+          v-for="shipping in shippingMethods"
+          :key="shipping.id"
+        >{ shipping.name } ({ shipping.price })</option>
+      </select>
+    </div>
+  </article>
+...
+```
+
+```js
+<script>
+...
+export default {
+  data() {
+    return {
+      address: [],
+      shippingMethods: [],
+      form: {
+        address_id: null,
+        shipping_method_id: null
+      }
+    };
+  },
+  watch: {
+    "form.address_id"(addressId) {
+      this.getShippingMethodsForAddress(addressId);
+    }
+  },
+  ...
+  methods: {
+     ...
+     async getShippingMethodsForAddress(addressId) {
+      let response = await axios.get(`api/addresses/${addressId}/shipping`);
+      this.shippingMethods = response.data.data;
+    }
+  }
+```
+

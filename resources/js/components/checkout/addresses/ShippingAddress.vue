@@ -1,5 +1,6 @@
 <template>
   <article class="pl-4">
+    <h3 class="text-muted pt-2 mb-3">Billing address</h3>
     <template v-if="selecting">
       <ShippingAddressSelector
         :addresses="addresses"
