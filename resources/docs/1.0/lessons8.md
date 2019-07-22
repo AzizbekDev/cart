@@ -8,8 +8,8 @@
 - [77-Outputting available shipping methods](#section-6)
 - [78-Adding shipping onto the subtotal](#section-7)
 - [79-Displaying shipping price and total at checkout](#section-8)
-- [80-Fixing shipping error on checkout](#section-9)
-- [81-Adding address and shipping method relation to orders](#section-10)
+- [80-Fixing shipping error on checkout](#section-8)
+- [81-Adding address and shipping method relation to orders](#section-9)
 
 <a name="section-1"></a>
 
@@ -1012,4 +1012,146 @@ export const storeShipping = ({
 }, shipping) => {
     commit('setShipping', shipping);
 }
+```
+
+<a name="section-9"></a>
+
+## Episode-81 Adding address and shipping method relation to orders
+
+`1` - Edit some migrations files order and add column to `orders` table
+
+```php
+...
+Schema::create('orders', function (Blueprint $table) {
+    $table->bigIncrements('id');
+    $table->bigInteger('user_id')->unsigned()->index();
+    $table->bigInteger('address_id')->unsigned()->index();
+    $table->bigInteger('shipping_method_id')->unsigned()->index();
+    $table->timestamps();
+});
+
+Schema::table('orders', function (Blueprint $table) {
+    $table->foreign('user_id')->references('id')->on('users');
+    $table->foreign('address_id')->references('id')->on('addresses');
+    $table->foreign('shipping_method_id')->references('id')->on('shipping_methods');
+});
+...
+```
+
+`2` - Edit `app/Order.php`
+
+```php
+<?php
+
+namespace App;
+
+use App\Models\User;
+use App\Models\Address;
+use App\Models\ShippingMethod;
+use Illuminate\Database\Eloquent\Model;
+
+class Order extends Model
+{
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function address()
+    {
+        return $this->belongsTo(Address::class);
+    }
+
+    public function shippingMethod()
+    {
+        return $this->belongsTo(ShippingMethod::class);
+    }
+}
+```
+
+`3` - Create new `Tests` for `OrderTest`
+
+```command
+php artisan make:test Models\\Orders\\OrderTest --unit
+```
+
+`4` - Edit `tests/Unit/Models/Orders/OrderTest.php`
+
+```php
+<?php
+
+namespace Tests\Unit\Models\Orders;
+
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\Order;
+use App\Models\Address;
+use App\Models\ShippingMethod;
+
+class OrderTest extends TestCase
+{
+    public function test_it_belongs_to_a_user()
+    {
+        $order = factory(Order::class)->create([
+            'user_id' => factory(User::class)->create()->id,
+        ]);
+
+        $this->assertInstanceOf(User::class, $order->user);
+    }
+
+    public function test_it_belongs_to_an_address()
+    {
+        $order = factory(Order::class)->create([
+            'user_id' => factory(User::class)->create()->id,
+        ]);
+
+        $this->assertInstanceOf(Address::class, $order->address);
+    }
+
+    public function test_it_belongs_to_a_shipping_method()
+    {
+        $order = factory(Order::class)->create([
+            'user_id' => factory(User::class)->create()->id
+        ]);
+
+        $this->assertInstanceOf(ShippingMethod::class, $order->shippingMethod);
+    }
+}
+```
+`5` - Create new factory file `OrderFactory`
+
+```command
+  php artisan make:factory OrderFactory
+```
+
+`6` - Edit `database/factories/OrderFactory.php`
+
+```php
+<?php
+use App\Model;
+
+use App\Models\Order;
+use App\Models\Address;
+use Faker\Generator as Faker;
+use App\Models\ShippingMethod;
+
+$factory->define(Order::class, function (Faker $faker) {
+    return [
+        'address_id' => factory(Address::class)->create()->id,
+        'shipping_method_id' => factory(ShippingMethod::class)->create()->id,
+    ];
+});
+```
+
+`7` - Edit `database/factories/AddressFactory.php`
+
+```php
+use App\Models\User;
+...
+$factory->define(Address::class, function (Faker $faker) {
+    return [
+      ...
+      'user_id' => factory(User::class)->create()->id
+      ];
+});
 ```
