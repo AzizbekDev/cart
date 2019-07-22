@@ -4,6 +4,7 @@ namespace Tests\Feature\Cart;
 
 use Tests\TestCase;
 use App\Models\User;
+use App\Models\ShippingMethod;
 use App\Models\ProductVariation;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,9 +36,9 @@ class CartIndexTest extends TestCase
         $user = factory(User::class)->create();
 
         $response = $this->jsonAs($user, 'GET', "api/cart")
-        ->assertJsonFragment([
-            'empty' => true
-        ]);
+            ->assertJsonFragment([
+                'empty' => true
+            ]);
     }
 
     public function test_it_shows_a_formatted_subtotal()
@@ -45,9 +46,9 @@ class CartIndexTest extends TestCase
         $user = factory(User::class)->create();
 
         $response = $this->jsonAs($user, 'GET', "api/cart")
-        ->assertJsonFragment([
-            'subtotal' => "£0.00"
-        ]);
+            ->assertJsonFragment([
+                'subtotal' => "£0.00"
+            ]);
     }
 
     public function test_it_shows_a_formatted_total()
@@ -55,9 +56,9 @@ class CartIndexTest extends TestCase
         $user = factory(User::class)->create();
 
         $response = $this->jsonAs($user, 'GET', "api/cart")
-        ->assertJsonFragment([
-            'total' => "£0.00"
-        ]);
+            ->assertJsonFragment([
+                'total' => "£0.00"
+            ]);
     }
 
     public function test_it_syncs_the_cart()
@@ -65,15 +66,29 @@ class CartIndexTest extends TestCase
         $user = factory(User::class)->create();
 
         $user->cart()->attach(
-            $product = factory(ProductVariation::class)->create(),[
+            $product = factory(ProductVariation::class)->create(),
+            [
                 'quantity' => 2
             ]
         );
-    
+
         $response = $this->jsonAs($user, 'GET', 'api/cart')
-        ->assertJsonFragment([
-            'changed' => true
+            ->assertJsonFragment([
+                'changed' => true
+            ]);
+    }
+
+    public function test_is_shows_a_formatted_total_with_shipping()
+    {
+        $user = factory(User::class)->create();
+
+        $shipping = factory(ShippingMethod::class)->create([
+            'price' => 1000
         ]);
 
+        $response = $this->jsonAs($user, 'GET', "api/cart?shipping_method_id={$shipping->id}")
+            ->assertJsonFragment([
+                'total' => "£10.00"
+            ]);
     }
 }

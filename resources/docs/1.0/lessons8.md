@@ -618,3 +618,207 @@ export default {
   }
 ```
 
+<a name="section-7"></a>
+
+## Episode-78 Adding shipping onto the subtotal
+
+`1` - Edit `app/Http/Controllers/Cart/CartController.php`
+
+```php
+...
+ public function index(Request $request, Cart $cart)
+    {
+     ...
+      return (new CartResource($request->user()))
+          ->additional([
+              'meta' => $this->meta($cart, $request)  //add request as a second parametr
+        ]);
+    }
+  protected function meta(Cart $cart, Request $request) // add request Instance
+    {
+      return [
+        'empty' => $cart->isEmpty(),
+        'subtotal' => $cart->subtotal()->formatted(),
+        'total' => $cart->withShipping($request->shipping_method_id)->total()->formatted(), // change this line
+        'changed' => $cart->hasChanged()
+      ];
+    }
+
+```
+
+`2` - Edit `app/Cart/Cart.php`
+
+```php
+use App\Models\ShippingMethod;
+...
+class Cart
+{
+  protected $shipping;
+  ...
+  // add new withShipping method
+  public function withShipping($shippingId)
+  {
+      $this->shipping = ShippingMethod::find($shippingId);
+        return $this;
+  }
+  ...
+  
+  public function total()
+  {
+    // add this condition if shipping is exists return (total + shipping) amount
+    if ($this->shipping) {
+      return $this->subtotal()->add($this->shipping->price);
+    }
+      return $this->subtotal();
+    }
+  ...
+```
+
+`3` - Edit `app/Cart/Money.php`
+
+```php
+...
+class Money
+{
+  ...
+  public function add(Money $money)
+    {
+        $this->money = $this->money->add($money->instance());
+
+        return $this;
+    }
+
+    public function instance()
+    {
+        return $this->money;
+    }
+}
+
+```
+
+`4` - Edit `tests/Unit/Cart/CartTest.php`
+
+```php
+use App\Models\ShippingMethod;
+...
+class CartTest extends TestCase
+{
+...
+  public function test_it_can_return_the_correct_total_without_shipping()
+    {
+        $cart = new Cart(
+            $user = factory(User::class)->create()
+        );
+
+        $user->cart()->attach(
+            $product = factory(ProductVariation::class)->create([
+                'price' => 1000
+            ]),
+            [
+                'quantity' => 2
+            ]
+        );
+
+        $this->assertEquals($cart->total()->amount(), 2000);
+    }
+
+  public function test_it_can_return_the_correct_total_with_shipping()
+    {
+        $cart = new Cart(
+            $user = factory(User::class)->create()
+        );
+
+        $shipping = factory(ShippingMethod::class)->create([
+            'price' => 1000
+        ]);
+
+        $user->cart()->attach(
+            $product = factory(ProductVariation::class)->create([
+                'price' => 1000
+            ]),
+            [
+                'quantity' => 2
+            ]
+        );
+
+        $cart = $cart->withShipping($shipping->id);
+
+        $this->assertEquals($cart->total()->amount(), 3000);
+    }
+}
+```
+
+`5` - Create new Test `MoneyTest` this will be unit test
+
+```command
+php artisan make:test Money\\MoneyTest --unit
+```
+
+`6` - Edit `tests/Unit/Money/MoneyTest.php`
+
+```php
+<?php
+
+namespace Tests\Unit\Money;
+
+use App\Cart\Money;
+use Tests\TestCase;
+use Money\Money as BaseMoney;
+
+class MoneyTest extends TestCase
+{
+    public function test_it_can_get_the_row_amount()
+    {
+        $money = new Money(1000);
+
+        $this->assertEquals($money->amount(), 1000);
+    }
+
+    public function test_it_can_get_the_formatted_amount()
+    {
+        $money = new Money(1000);
+
+        $this->assertEquals($money->formatted(), '£10.00');
+    }
+
+    public function test_it_can_add_up()
+    {
+        $money = new Money(1000);
+
+        $money = $money->add(new Money(1000));
+
+        $this->assertEquals($money->amount(), 2000);
+    }
+
+    public function test_it_can_return_the_underlying_instance()
+    {
+        $money = new Money(1000);
+
+        $this->assertInstanceOf(BaseMoney::class, $money->instance());
+    }
+}
+```
+
+`7` - Edit `tests/Feature/Cart/CartIndexTest.php`
+
+```php
+use App\Models\ShippingMethod;
+...
+class CartIndexTest extends TestCase
+{
+...
+ public function test_is_shows_a_formatted_total_with_shipping()
+    {
+        $user = factory(User::class)->create();
+
+        $shipping = factory(ShippingMethod::class)->create([
+            'price' => 1000
+        ]);
+
+        $response = $this->jsonAs($user, 'GET', "api/cart?shipping_method_id={$shipping->id}")
+            ->assertJsonFragment([
+                'total' => "£10.00"
+            ]);
+    }
+}
+```

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Cart;
 
 use Money\Currency;
@@ -27,7 +28,19 @@ class Money
             new NumberFormatter('en_GB', NumberFormatter::CURRENCY),
             new ISOCurrencies()
         );
-        
+
         return $formatter->format($this->money);
+    }
+
+    public function add(Money $money)
+    {
+        $this->money = $this->money->add($money->instance());
+
+        return $this;
+    }
+
+    public function instance()
+    {
+        return $this->money;
     }
 }

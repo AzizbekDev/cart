@@ -1,8 +1,10 @@
 <?php
+
 namespace App\Cart;
 
 use App\Cart\Money;
 use App\Models\User;
+use App\Models\ShippingMethod;
 
 class Cart
 {
@@ -10,9 +12,17 @@ class Cart
 
     protected $changed = false;
 
+    protected $shipping;
+
     public function __construct(User $user)
     {
         $this->user = $user;
+    }
+
+    public function withShipping($shippingId)
+    {
+        $this->shipping = ShippingMethod::find($shippingId);
+        return $this;
     }
 
     public function add($products)
@@ -24,7 +34,7 @@ class Cart
 
     public function update($productId, $quantity)
     {
-        $this->user->cart()->updateExistingPivot($productId,[
+        $this->user->cart()->updateExistingPivot($productId, [
             'quantity' => $quantity
         ]);
     }
@@ -36,7 +46,7 @@ class Cart
 
     public function sync()
     {
-        $this->user->cart->each(function($product){
+        $this->user->cart->each(function ($product) {
             $quantity = $product->minStock($product->pivot->quantity);
 
             $this->changed = $quantity != $product->pivot->quantity;
@@ -64,7 +74,7 @@ class Cart
 
     public function subtotal()
     {
-        $subtotal = $this->user->cart->sum(function($product){
+        $subtotal = $this->user->cart->sum(function ($product) {
             return $product->price->amount() * $product->pivot->quantity;
         });
 
@@ -73,12 +83,15 @@ class Cart
 
     public function total()
     {
+        if ($this->shipping) {
+            return $this->subtotal()->add($this->shipping->price);
+        }
         return $this->subtotal();
     }
 
     protected function getStorePeyload($products)
     {
-        return collect($products)->keyBy('id')->map(function ($product){
+        return collect($products)->keyBy('id')->map(function ($product) {
             return [
                 'quantity' => $product['quantity'] + $this->getCurrentQuantity($product['id'])
             ];
@@ -87,8 +100,7 @@ class Cart
 
     protected function getCurrentQuantity($productId)
     {
-        if($product = $this->user->cart->where('id', $productId)->first())
-        {
+        if ($product = $this->user->cart->where('id', $productId)->first()) {
             return $product->pivot->quantity;
         }
         return 0;
