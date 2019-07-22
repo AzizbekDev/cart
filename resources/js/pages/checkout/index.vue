@@ -4,8 +4,9 @@
       <div class="row py-5">
         <div class="col-md-8 order-md-1">
           <h3 class="text-muted pt-2 mb-3">Billing address</h3>
+          {{ form }}
           <form class="needs-validation" novalidate>
-            <ShippingAddress :addresses="address"></ShippingAddress>
+            <ShippingAddress :addresses="address" v-model="form.address_id"></ShippingAddress>
             <div class="cart-overview" v-if="products.length">
               <h3 class="text-muted pt-2 mb-3">Your cart</h3>
               <article class="pl-4">
@@ -47,7 +48,10 @@ import CartOverView from "../../components/cart/CartOverview";
 export default {
   data() {
     return {
-      address: []
+      address: [],
+      form: {
+        address_id: null
+      }
     };
   },
   components: {

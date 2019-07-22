@@ -76,6 +76,9 @@ export default {
       if (v) {
         this.switchAddress(v);
       }
+    },
+    selectedAddress(address) {
+      this.$emit("input", address.id);
     }
   },
   computed: {

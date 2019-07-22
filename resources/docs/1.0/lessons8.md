@@ -497,3 +497,71 @@ class AddressShippingTest extends TestCase
     }
 }
 ```
+
+<a name="section-5"></a>
+
+## Episode-76 Using v-model with a shipping methods for an address
+
+`1` - Edit `resources/js/pages/checkout/index.vue`
+
+- Binding with `v-model` method current page `form.address_id` data to ShippingAddress page `selectedAddress` data
+
+```js
+ <ShippingAddress :addresses="address"></ShippingAddress>
+ ...
+<script>
+...
+export default {
+  data() {
+    return {
+      address: []
+    };
+  },
+```
+
+change to
+
+```js
+ <ShippingAddress :addresses="address" v-model="form.address_id"></ShippingAddress>
+ ...
+<script>
+...
+export default {
+  data() {
+    return {
+      address: [],
+      form: {
+        address_id: null
+      }
+    };
+  },
+```
+
+`2` - Edit `resources/js/components/checkout/addresses/ShippingAddress.vue`
+
+```js
+...
+watch: {
+    defaultAddress(v) {
+      if (v) {
+        this.switchAddress(v);
+      }
+    }
+  },
+...
+```
+
+change to
+
+```js
+watch: {
+    defaultAddress(v) {
+      if (v) {
+        this.switchAddress(v);
+      }
+    },
+    selectedAddress(address) {
+      this.$emit("input", address.id);
+    }
+  },
+```
