@@ -240,3 +240,96 @@ class OrderStoreTest extends TestCase
     }
 }
 ```
+
+
+<a name="section-3"></a>
+
+## Episode-84 Custom shipping method validation rule
+
+`1` - Creating a new role file `ValidShippingMethod`
+
+```command
+php artisan make:rule ValidShippingMethod
+```
+
+`2` - Edit `app/Rules/ValidShippingMethod.php`
+
+```php
+<?php
+
+namespace App\Rules;
+
+use App\Models\Address;
+use Illuminate\Contracts\Validation\Rule;
+
+class ValidShippingMethod implements Rule
+{
+    protected $addressId;
+
+    public function __construct($addressId)
+    {
+        $this->addressId = $addressId;
+    }
+
+    public function passes($attribute, $value)
+    {
+        if (!$address = $this->getAddress()) {
+            return false;
+        }
+        return $address->country->shippingMethods->contains('id', $value);
+    }
+
+    public function message()
+    {
+        return 'Invalid shipping method.';
+    }
+
+    protected function getAddress()
+    {
+        return Address::find($this->addressId);
+    }
+}
+```
+
+`3` - Edit `app/Http/Requests/Orders/OrderStoreRequest.php`
+
+```php
+public function rules()
+{
+    return [
+        'address_id' => [
+            'required',
+            Rule::exists('addresses', 'id')->where(function ($builder) {
+                $builder->where('user_id', $this->user()->id);
+            })
+        ],
+        'shipping_method_id' => [
+            'required',
+            'exists:shipping_methods,id',
+            new ValidShippingMethod($this->address_id)
+        ]
+    ];
+}
+```
+
+`4` - Edit `tests/Feature/Orders/OrderStoreTest.php`
+
+```php
+...
+public function test_it_requires_a_shipping_method_valid_for_given_address()
+    {
+        $user = factory(User::class)->create();
+
+        $address = factory(Address::class)->create([
+            'user_id' => $user->id,
+        ]);
+
+        $shipping = factory(ShippingMethod::class)->create();
+
+        $this->jsonAs($user, 'POST', 'api/orders', [
+            'shipping_method_id' => $shipping->id,
+            'address_id' => $address->id
+        ])->assertJsonValidationErrors(['shipping_method_id']);
+    }
+...
+```
