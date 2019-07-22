@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Order;
 use App\Models\Address;
 use App\Models\ProductVariation;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -39,11 +40,11 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-    
+
     public static function boot()
     {
         parent::boot();
-        static::creating(function($user){
+        static::creating(function ($user) {
             $user->password = bcrypt($user->password);
         });
     }
@@ -71,12 +72,17 @@ class User extends Authenticatable implements JWTSubject
     public function cart()
     {
         return $this->belongsToMany(ProductVariation::class, 'cart_user')
-        ->withPivot('quantity')
-        ->withTimeStamps();
+            ->withPivot('quantity')
+            ->withTimeStamps();
     }
 
     public function addresses()
     {
         return $this->hasMany(Address::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }

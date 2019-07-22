@@ -17,6 +17,7 @@ class Order extends Model
     protected $fillable = [
         'status',
         'address_id',
+        'subtotal',
         'shipping_method_id'
     ];
 

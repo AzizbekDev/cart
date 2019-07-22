@@ -333,3 +333,174 @@ public function test_it_requires_a_shipping_method_valid_for_given_address()
     }
 ...
 ```
+
+<a name="section-4"></a>
+
+## Episode-85 Creating an order
+
+`1` - Edit `app/Models/User.php`
+
+```php
+...
+use App\Models\Order;
+...
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+```
+
+`2` - Edit `app/Http/Controllers/Orders/OrderController.php`
+
+```php
+...
+    public function store(OrderStoreRequest $request)
+    {
+        $request->user()->orders()->create(
+            $request->only(['address_id', 'shipping_method_id'])
+        );
+    }
+...
+```
+
+`3` Create new migration file `add_subtotal_to_orders_table`
+
+```command
+php artisan make:migration add_subtotal_to_orders_table --table=orders
+```
+
+`4` - Edit 'database/migrations/2019_07_30_164104_add_subtotal_to_orders_table.php'
+
+```php
+...
+    public function up()
+    {
+        Schema::table('orders', function (Blueprint $table) {
+            $table->integer('subtotal');
+        });
+    }
+
+    public function down()
+    {
+        Schema::table('orders', function (Blueprint $table) {
+            $table->dropColumn('subtotal');
+        });
+    }
+...
+```
+
+`5` - Edit `app/Models/Order.php`
+
+```php
+...
+//adding subtotal to fillable array
+ protected $fillable = [
+        'status',
+        'address_id',
+        'subtotal',
+        'shipping_method_id'
+    ];
+...
+```
+
+`6` - Edit `app/Http/Controllers/Orders/OrderController.php`
+
+```php
+use App\Cart\Cart;
+...
+class OrderController extends Controller
+{
+    protected $cart;
+
+    public function __construct(Cart $cart)
+    {
+        $this->middleware(['auth:api']);
+
+        $this->cart = $cart;
+    }
+
+    public function store(OrderStoreRequest $request)
+    {
+        $this->createOrder($request);
+    }
+
+    protected function createOrder(Request $request)
+    {
+        $request->user()->orders()->create(
+            array_merge($request->only(['address_id', 'shipping_method_id']), [
+                'subtotal' => $this->cart->subtotal()->amount()
+            ])
+        );
+    }
+}
+```
+
+
+`7` - Edit `tests/Unit/Models/Users/UserTest.php`
+
+```php
+use App\Models\Order;
+...
+ public function test_it_has_many_orders()
+    {
+        $user = factory(User::class)->create();
+
+        factory(Order::class)->create([
+            'user_id' => $user->id
+        ]);
+
+        $this->assertInstanceOf(Order::class, $user->orders->first());
+    }
+...
+```
+
+`8` - Edit `database/factories/OrderFactory.php`
+
+```php
+// added subtotal
+...
+$factory->define(Order::class, function (Faker $faker) {
+    return [
+        'address_id' => factory(Address::class)->create()->id,
+        'shipping_method_id' => factory(ShippingMethod::class)->create()->id,
+        'subtotal' => 1000
+    ];
+});
+...
+```
+
+`9` - Edit `tests/Feature/Orders/OrderStoreTest.php`
+
+```php
+
+...
+  public function test_it_can_create_an_order()
+    {
+        $user = factory(User::class)->create();
+
+        list($address, $shipping) = $this->orderDependencies($user);
+
+        $this->jsonAs($user, "POST", 'api/orders', [
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id
+        ]);
+
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $user->id,
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id
+        ]);
+    }
+
+    protected function orderDependencies(User $user)
+    {
+        $address = factory(Address::class)->create([
+            'user_id' => $user->id
+        ]);
+
+        $shipping = factory(ShippingMethod::class)->create();
+        $shipping->countries()->attach($address->country);
+
+        return [$address, $shipping];
+    }
+```
