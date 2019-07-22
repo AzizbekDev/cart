@@ -2,5 +2,6 @@
     - [Overview](/{{route}}/{{version}}/overview)
     - [Installing](/{{route}}/{{version}}/installization)
     - [Episodes 72-81](/{{route}}/{{version}}/lessons8)
+    - [Episodes 82-91](/{{route}}/{{version}}/lessons9)
     - [Notes Laravel](/{{route}}/{{version}}/notes-laravel)
     - [Notes Vue](/{{route}}/{{version}}/notes-vue)
