@@ -13,7 +13,7 @@ class CategoryController extends Controller
     {
         return CategoryResource::collection(
             // Category::get()
-            
+
             // Category get parent with children & ordered by order column ascending
             Category::with('children')->parents()->ordered()->get()
         );

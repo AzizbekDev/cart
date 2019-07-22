@@ -81,3 +81,162 @@ public function down()
     }
 ...
 ```
+
+<a name="section-2"></a>
+
+## Episode-83 Basic order validation
+
+`1` - Create new Controller file `OrderController`
+
+```command
+php artisan make:controller Orders\\OrderController
+```
+
+`2` - Edit ``
+
+```php
+<?php
+
+namespace App\Http\Controllers\Orders;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Orders\OrderStoreRequest;
+
+class OrderController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware(['auth:api']);
+    }
+
+    public function store(OrderStoreRequest $request)
+    {
+        dd('test');
+    }
+}
+```
+
+`3` - Edit `routes/api.php`
+
+```php
+...
+Route::resource('orders', 'Orders\OrderController');
+...
+```
+
+`4` - Create new request file `OrderSoreRequest`
+
+```command
+php artisan make:request Orders\\OrderStoreRequest
+```
+
+`5` - Edit `app/Http/Requests/Orders/OrderStoreRequest.php`
+
+```php
+<?php
+namespace App\Http\Requests\Orders;
+
+use Illuminate\Validation\Rule;
+use Illuminate\Foundation\Http\FormRequest;
+
+class OrderStoreRequest extends FormRequest
+{
+    public function authorize()
+    {
+        return true;
+    }
+
+    public function rules()
+    {
+        return [
+            'address_id' => [
+                'required',
+                Rule::exists('addresses', 'id')->where(function ($builder) {
+                    $builder->where('user_id', $this->user()->id);
+                })
+            ],
+            'shipping_method_id' => [
+                'required',
+                'exists:shipping_methods,id'
+            ]
+        ];
+    }
+}
+```
+
+`6` - Create new Test `OrderStoreTest` this will be feature test
+
+```command
+php artisan make:test Orders\\OrderStoreTest
+```
+
+`7` - Edit `tests/Feature/Orders/OrderStoreTest.php`
+
+```php
+<?php
+
+namespace Tests\Feature\Orders;
+
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\Address;
+
+class OrderStoreTest extends TestCase
+{
+    public function test_it_fails_if_not_authenticated()
+    {
+        $this->json("POST", 'api/orders')
+            ->assertStatus(401);
+    }
+
+    public function test_it_requires_an_address()
+    {
+        $user = factory(User::class)->create();
+
+        $this->jsonAs($user, "POST", 'api/orders')
+            ->assertJsonValidationErrors(['address_id']);
+    }
+
+    public function test_it_requires_an_address_that_exists()
+    {
+        $user = factory(User::class)->create();
+
+        $this->jsonAs($user, "POST", 'api/orders', [
+            'address_id' => 1
+        ])
+            ->assertJsonValidationErrors(['address_id']);
+    }
+
+    public function test_it_requires_an_address_that_belongs_to_user()
+    {
+        $user = factory(User::class)->create();
+
+        $address = factory(Address::class)->create([
+            'user_id' => factory(User::class)->create()->id
+        ]);
+
+        $this->jsonAs($user, "POST", 'api/orders', [
+            'address_id' => $address->id
+        ])->assertJsonValidationErrors(['address_id']);
+    }
+
+    public function test_it_requires_a_shipping_method()
+    {
+        $user = factory(User::class)->create();
+
+        $this->jsonAs($user, "POST", 'api/orders')
+            ->assertJsonValidationErrors(['shipping_method_id']);
+    }
+
+    public function test_it_requires_a_shipping_method_that_exists()
+    {
+        $user = factory(User::class)->create();
+
+        $this->jsonAs($user, "POST", 'api/orders', [
+            'shipping_method_id' => 1
+        ])
+            ->assertJsonValidationErrors(['shipping_method_id']);
+    }
+}
+```
