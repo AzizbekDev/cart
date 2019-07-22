@@ -15,6 +15,7 @@ export default {
         subtotal: null,
         total: null,
         products: [],
-        changed: false
+        changed: false,
+        shipping: null
     }
 }

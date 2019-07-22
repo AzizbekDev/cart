@@ -822,3 +822,194 @@ class CartIndexTest extends TestCase
     }
 }
 ```
+
+<a name="section-8"></a>
+
+## Episode-79 Displaying shipping price and total at checkout
+
+`1` - Edit `resources/js/pages/checkout/index.vue`
+
+- check if `shippingMethodsId` is null display none shipping wrapper <br>
+and table shipping price row.
+- binding `shippingMethodsId` computed propery to selecet
+- adding `value="shipping.id"` to options tags
+
+```vue
+...
+<article class="pl-4" v-if="shippingMethodId">
+...
+  <select class="form-control" v-model="shippingMethodsId">
+  <option
+    v-for="shipping in shippingMethods"
+    :key="shipping.id"
+    :value="shipping.id"
+  >{ shipping.name } ({ shipping.price })</option>
+  </select>
+  ...
+  <tr v-if="shippingMethodId">
+    <td></td>
+    <td></td>
+    <td class="font-weight-bold">Shipping</td>
+    <td>{ shipping.price }</td>
+    <td></td>
+    <td></td>
+  </tr>
+  ...
+```
+
+js part changes
+
+- imporing `mapActions` form vuex
+- watching `from.address_id` if modified call `getShippingMethodsForAddress` method <br>
+and `setShipping` action
+- added to computed `shippingMethodId` object wirh two methods `get` and `set` methods
+- methods added `mapActions`
+- `getAddresses` method added return
+
+```js
+<script>
+import { mapGetters, mapActions } from "vuex";
+export default {
+  data() {
+    return {
+      address: [],
+      shippingMethods: [],
+      form: {
+        address_id: null
+      }
+    };
+  },
+  watch: {
+    "form.address_id"(addressId) {
+      this.getShippingMethodsForAddress(addressId).then(() => {
+        this.setShipping(this.shippingMethods[0]);
+      });
+    },
+    shippingMethodId() {
+      this.getCart();
+    }
+  },
+  components: {
+    CartOverView,
+    ShippingAddress
+  },
+  computed: {
+    ...mapGetters({
+      total: "cartTotal",
+      products: "cartProducts",
+      empty: "cartEmpty",
+      shipping: "shipping"
+    }),
+    shippingMethodId: {
+      get() {
+        return this.shipping ? this.shipping.id : "";
+      },
+      set(shippingMethodId) {
+        this.setShipping(
+          this.shippingMethods.find(s => s.id === shippingMethodId)
+        );
+      }
+    }
+  },
+  methods: {
+    ...mapActions({
+      setShipping: "storeShipping",
+      getCart: "getCart"
+    }),
+    async getAddresses() {
+      const auth = {
+        headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+      };
+      let response = await axios.get("api/addresses", auth);
+      this.address = response.data.data;
+    },
+    async getShippingMethodsForAddress(addressId) {
+      let response = await axios.get(`api/addresses/${addressId}/shipping`);
+      this.shippingMethods = response.data.data;
+      return response;
+    }
+  },
+  ...
+  };
+</script>
+```
+
+`2` - Edit  `resources/js/store/state.js`
+
+- Adding new parametr `shipping`
+
+```js
+ ...
+ export default {
+ ...
+ cart: {
+        quantity: null,
+        empty: true,
+        subtotal: null,
+        total: null,
+        products: [],
+        changed: false,
+        shipping: null  //added this property
+  }
+}
+```
+
+`3` - Edit  `resources/js/store/state.js`
+
+- adding new `shipping` const to getters
+
+```js
+export const shipping = (state) => {
+    return state.cart.shipping
+}
+```
+
+`4` - Edit  `resources/js/store/mutations.js`
+
+- adding new `mutation` const to mutations
+
+```js
+import {
+    shipping
+} from './getters';
+...
+export const setShipping = (state, shipping) => {
+    state.cart.shipping = shipping
+}
+...
+```
+
+`5` - Edit  `resources/js/store/mutations.js`
+
+- installed `query-string` and using it `getCart` action
+
+```js
+import queryString from 'query-string'
+...
+import {
+    shipping
+} from './getters';
+...
+export const getCart = ({
+    commit,
+    state
+}) => {
+    let query = {}
+    if (state.cart.shipping) {
+        query.shipping_method_id = state.cart.shipping.id
+    }
+    return axios.get(`/api/cart?${queryString.stringify(query)}`).then((response) => {
+        commit('setCartProducts', response.data.data.products)
+        commit('setEmpty', response.data.meta.empty)
+        commit('setSubtotal', response.data.meta.subtotal)
+        commit('setTotal', response.data.meta.total)
+        commit('setChanged', response.data.meta.changed)
+    })
+}
+...
+export const storeShipping = ({
+    commit
+}, shipping) => {
+    commit('setShipping', shipping);
+}
+```

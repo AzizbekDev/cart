@@ -1,9 +1,15 @@
+import queryString from 'query-string'
 import {
     isEmpty
 } from 'lodash'
 import {
     setHttpToken
 } from '../helpers/index'
+
+
+import {
+    shipping
+} from './getters';
 
 export const fetchCategories = ({
     commit
@@ -53,9 +59,14 @@ export const clearAuth = ({
 }
 
 export const getCart = ({
-    commit
+    commit,
+    state
 }) => {
-    return axios.get('/api/cart').then((response) => {
+    let query = {}
+    if (state.cart.shipping) {
+        query.shipping_method_id = state.cart.shipping.id
+    }
+    return axios.get(`/api/cart?${queryString.stringify(query)}`).then((response) => {
         commit('setCartProducts', response.data.data.products)
         commit('setEmpty', response.data.meta.empty)
         commit('setSubtotal', response.data.meta.subtotal)
@@ -91,4 +102,10 @@ export const storeCart = ({
     })
     dispatch('getCart');
 
+}
+
+export const storeShipping = ({
+    commit
+}, shipping) => {
+    commit('setShipping', shipping);
 }

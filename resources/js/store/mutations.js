@@ -1,6 +1,9 @@
 import {
     isEmpty
 } from 'lodash'
+import {
+    shipping
+} from './getters';
 
 export const setCategories = (state, categories) => {
     state.categories = categories
@@ -57,4 +60,8 @@ export const setTotal = (state, total) => {
 
 export const setChanged = (state, changed) => {
     state.cart.changed = changed
+}
+
+export const setShipping = (state, shipping) => {
+    state.cart.shipping = shipping
 }

@@ -5,13 +5,14 @@
         <div class="col-md-8 order-md-1">
           <form class="needs-validation" novalidate>
             <ShippingAddress :addresses="address" v-model="form.address_id"></ShippingAddress>
-            <article class="pl-4">
+            <article class="pl-4" v-if="shippingMethodId">
               <h3 class="text-muted pt-2 mb-3">Shipping</h3>
               <div class="form-group">
-                <select class="form-control" v-model="form.shipping_method_id">
+                <select class="form-control" v-model="shippingMethodId">
                   <option
                     v-for="shipping in shippingMethods"
                     :key="shipping.id"
+                    :value="shipping.id"
                   >{{ shipping.name }} ({{ shipping.price }})</option>
                 </select>
               </div>
@@ -21,11 +22,11 @@
               <article class="pl-4">
                 <CartOverView>
                   <template slot="rows">
-                    <tr>
+                    <tr v-if="shippingMethodId">
                       <td></td>
                       <td></td>
                       <td class="font-weight-bold">Shipping</td>
-                      <td>£0.00</td>
+                      <td>{{ shipping.price }}</td>
                       <td></td>
                       <td></td>
                     </tr>
@@ -51,7 +52,7 @@
   </section>
 </template>
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 import ShippingAddress from "../../components/checkout/addresses/ShippingAddress";
 import CartOverView from "../../components/cart/CartOverview";
 export default {
@@ -60,14 +61,18 @@ export default {
       address: [],
       shippingMethods: [],
       form: {
-        address_id: null,
-        shipping_method_id: null
+        address_id: null
       }
     };
   },
   watch: {
     "form.address_id"(addressId) {
-      this.getShippingMethodsForAddress(addressId);
+      this.getShippingMethodsForAddress(addressId).then(() => {
+        this.setShipping(this.shippingMethods[0]);
+      });
+    },
+    shippingMethodId() {
+      this.getCart();
     }
   },
   components: {
@@ -78,10 +83,25 @@ export default {
     ...mapGetters({
       total: "cartTotal",
       products: "cartProducts",
-      empty: "cartEmpty"
-    })
+      empty: "cartEmpty",
+      shipping: "shipping"
+    }),
+    shippingMethodId: {
+      get() {
+        return this.shipping ? this.shipping.id : "";
+      },
+      set(shippingMethodId) {
+        this.setShipping(
+          this.shippingMethods.find(s => s.id === shippingMethodId)
+        );
+      }
+    }
   },
   methods: {
+    ...mapActions({
+      setShipping: "storeShipping",
+      getCart: "getCart"
+    }),
     async getAddresses() {
       const auth = {
         headers: { Authorization: "Bearer " + localStorage.getItem("token") }
@@ -92,6 +112,7 @@ export default {
     async getShippingMethodsForAddress(addressId) {
       let response = await axios.get(`api/addresses/${addressId}/shipping`);
       this.shippingMethods = response.data.data;
+      return response;
     }
   },
   created() {

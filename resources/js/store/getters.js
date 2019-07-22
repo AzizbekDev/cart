@@ -44,3 +44,7 @@ export const cartTotal = (state) => {
 export const cartChanged = (state) => {
     return state.cart.changed
 }
+
+export const shipping = (state) => {
+    return state.cart.shipping
+}
