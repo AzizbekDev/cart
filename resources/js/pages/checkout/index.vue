@@ -106,7 +106,8 @@ export default {
   methods: {
     ...mapActions({
       setShipping: "storeShipping",
-      getCart: "getCart"
+      getCart: "getCart",
+      flash: "flash"
     }),
     async getAddresses() {
       const auth = {
@@ -127,8 +128,10 @@ export default {
           name: "orders"
         });
       } catch (e) {
-        //
+        this.flash(e.response.data.message);
+        this.getCart();
       }
+      this.submitting = false;
     },
     async getShippingMethodsForAddress(addressId) {
       let response = await axios.get(`api/addresses/${addressId}/shipping`);

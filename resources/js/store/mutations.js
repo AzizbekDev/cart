@@ -65,3 +65,7 @@ export const setChanged = (state, changed) => {
 export const setShipping = (state, shipping) => {
     state.cart.shipping = shipping
 }
+
+export const setMessage = (state, message) => {
+    state.alert.message = message
+}

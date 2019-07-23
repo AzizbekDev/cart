@@ -288,6 +288,7 @@ public function __construct()
     }
 ...
 ```
+
 `5` - Create new middleware `ResponseIfEmpty`
 
 ```command
@@ -459,5 +460,135 @@ Change to
         );
         ...
     }
+...
+```
+
+<a name="section-5"></a>
+
+## Episode-96 Alerting on checkout changes
+
+`1` - Create new folder `globals` in to `resources/js/components`
+
+`2` - Create new file `TheAlert-vue` in to `resources/js/components/globals`
+
+`3` - Edit `resources/js/components/globals/TheAlert.vue`
+
+```html
+<template>
+  <div
+    class="alert alert-info alert-dismissible fade show"
+    role="alert"
+    v-if="alert"
+    @click.prevent="clearMessage"
+  >
+    { alert }.
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+</template>
+<script>
+import { mapGetters, mapActions } from "vuex";
+export default {
+  computed: {
+    ...mapGetters({
+      alert: "alertMessage"
+    })
+  },
+  methods: {
+    ...mapActions({
+      clearMessage: "clearMessage"
+    })
+  }
+};
+</script>
+```
+
+`4` - Edit `resources/js/App.vue`
+
+```html
+...
+<Alert></Alert>
+...
+<script>
+import Alert from "./components/globals/TheAlert";
+...
+export default {
+  components: {
+    Alert,
+    ...
+  }
+};
+...
+</style>
+```
+
+`5` - Edit `resources/js/store/state.js`
+
+```js
+export default {
+...
+ alert: {
+        message: null
+    }
+...
+```
+
+`6` - Edit `resources/js/store/actions.js`
+
+```js
+...
+export const flash = ({
+    commit
+}, message) => {
+    commit('setMessage', message)
+}
+
+export const clearMessage = ({
+    commit
+}) => {
+    commit('setMessage', null)
+}
+```
+
+`7` - Edit `resources/js/store/getters.js`
+
+```js
+...
+export const alertMessage = (state) => {
+    return state.alert.message
+}
+```
+
+`8` - Edit `resources/js/store/mutations.js`
+
+```js
+...
+export const setMessage = (state, message) => {
+    state.alert.message = message
+}
+```
+
+`9` - Edit `resources/js/pages/checkout/index.vue`
+
+```js
+...
+ methods: {
+    ...mapActions({
+      setShipping: "storeShipping",
+      getCart: "getCart",
+      flash: "flash"
+    }),
+    ...
+    async order() {
+        try {
+        ...
+        } catch (e) {
+        this.flash(e.response.data.message);
+        this.getCart();
+      }
+      this.submitting = false;
+    }
+ },
 ...
 ```

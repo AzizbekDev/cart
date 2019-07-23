@@ -17,5 +17,8 @@ export default {
         products: [],
         changed: false,
         shipping: null
+    },
+    alert: {
+        message: null
     }
 }

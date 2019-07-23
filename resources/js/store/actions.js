@@ -109,3 +109,15 @@ export const storeShipping = ({
 }, shipping) => {
     commit('setShipping', shipping);
 }
+
+export const flash = ({
+    commit
+}, message) => {
+    commit('setMessage', message)
+}
+
+export const clearMessage = ({
+    commit
+}) => {
+    commit('setMessage', null)
+}

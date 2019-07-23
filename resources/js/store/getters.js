@@ -48,3 +48,7 @@ export const cartChanged = (state) => {
 export const shipping = (state) => {
     return state.cart.shipping
 }
+
+export const alertMessage = (state) => {
+    return state.alert.message
+}
