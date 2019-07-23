@@ -787,3 +787,45 @@ class ProductVariationCollectionTest extends TestCase
     }
 }
 ```
+
+<a name="section-9"></a>
+
+## Episode-90 Failing if the cart is empty
+
+`1` - Edit `app/Http/Controllers/Orders/OrderController.php`
+
+```php
+...
+    public function store(OrderStoreRequest $request, Cart $cart)
+    {
+        if ($cart->isEmpty()) {
+            return response(null, 400);
+        }
+        ...
+    }
+...
+```
+
+`2` - Edit `tests/Feature/Orders/OrderStoreTest.php`
+
+```php
+...
+    public function test_it_fails_to_create_order_if_cart_is_empty()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync([
+            ($product = $this->productWithStock())->id => [
+                'quantity' => 0
+            ]
+        ]);
+
+        list($address, $shipping) = $this->orderDependencies($user);
+
+        $response = $this->jsonAs($user, 'POST', 'api/orders', [
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id
+        ])->assertStatus(400);
+    }
+...
+```
