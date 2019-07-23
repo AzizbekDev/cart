@@ -42,7 +42,12 @@
                 </CartOverView>
               </article>
             </div>
-            <button class="btn btn-primary btn-sm btn-block" type="submit" :disabled="empty">
+            <button
+              class="btn btn-primary btn-sm btn-block"
+              type="submit"
+              :disabled="empty || submitting"
+              @click.prevent="order"
+            >
               <i class="fa fa-credit-card"></i> Continue to checkout
             </button>
           </form>
@@ -58,6 +63,7 @@ import CartOverView from "../../components/cart/CartOverview";
 export default {
   data() {
     return {
+      submitting: false,
       address: [],
       shippingMethods: [],
       form: {
@@ -108,6 +114,21 @@ export default {
       };
       let response = await axios.get("api/addresses", auth);
       this.address = response.data.data;
+    },
+    async order() {
+      this.submitting = true;
+      try {
+        axios.post("api/orders", {
+          ...this.form,
+          shipping_method_id: this.shippingMethodId
+        });
+        await this.getCart();
+        this.$router.replace({
+          name: "orders"
+        });
+      } catch (e) {
+        //
+      }
     },
     async getShippingMethodsForAddress(addressId) {
       let response = await axios.get(`api/addresses/${addressId}/shipping`);

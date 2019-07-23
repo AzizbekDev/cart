@@ -77,7 +77,7 @@
         </template>
         <template v-else>
           <li class="nav-item">
-            <router-link class="btn btn-light" to="/order" exact>Order</router-link>
+            <router-link class="btn btn-light" to="/orders" exact>Order</router-link>
           </li>
           <li class="nav-item">
             <router-link class="btn btn-light" :to="{name: 'cart'}" exact>Cart ({{ countCart }})</router-link>

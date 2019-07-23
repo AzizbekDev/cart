@@ -107,3 +107,122 @@ class OrderCreated
     }
 ...
 ```
+<a name="section-2"></a>
+
+## Episode-93 Fixing up failing order test
+
+`1` - Edit `tests/Feature/Orders/OrderStoreTest.php`
+
+```php
+...
+  public function test_it_can_create_an_order()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+        ...
+    }
+...
+```
+
+<a name="section-3"></a>
+
+## Episode-94 Placeing orders from the checkout  `Front-end`
+
+`1` - Edit `resources/js/pages/checkout/index.vue`
+
+```php
+<template>
+...
+<button
+    class="btn btn-primary btn-sm btn-block"
+    type="submit"
+    :disabled="empty || submitting"
+    @click.prevent="order"
+>
+...
+</template>
+```
+
+JS part changes 
+
+```js
+...
+  data() {
+    return {
+      submitting: false,
+      ...
+    };
+  },
+...
+methods: {
+...
+async order() {
+    this.submitting = true;
+    try {
+    axios.post("api/orders", {
+        ...this.form,
+        shipping_method_id: this.shippingMethodId
+    });
+    await this.getCart();
+    this.$router.replace({
+        name: "orders"
+    });
+    } catch (e) {
+    //
+    }
+},
+...
+}
+```
+
+`2` - Edit `resources/js/router/routes.js`
+
+```js
+import Orders from '../pages/orders'
+...
+export default [
+    ...
+    {
+        path: '/orders',
+        name: 'orders',
+        component: Orders,
+        meta: {
+            guest: false,
+            needsAuth: true
+        }
+    },
+    ...
+];
+```
+
+`3` - Create new Folder `orders`
+
+`4` - Create new file `index.vue` in to `resources/js/pages/orders/index.vue`
+
+`5` - Edit `resources/js/pages/orders/index.vue`
+
+```html
+<template>
+  <p>Orders page</p>
+</template>
+<script>
+export default {
+  //
+};
+</script>
+```
+
+`6` - Edit `resources/js/components/Navbar.vue`
+
+```html
+<router-link class="btn btn-light" to="/order" exact>Order</router-link>
+```
+
+change route name to `orders`
+
+```html
+<router-link class="btn btn-light" to="/orders" exact>Order</router-link>
+```
