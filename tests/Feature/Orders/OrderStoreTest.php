@@ -4,8 +4,10 @@ namespace Tests\Feature\Orders;
 
 use Tests\TestCase;
 use App\Models\User;
+use App\Models\Stock;
 use App\Models\Address;
 use App\Models\ShippingMethod;
+use App\Models\ProductVariation;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -98,6 +100,37 @@ class OrderStoreTest extends TestCase
             'address_id' => $address->id,
             'shipping_method_id' => $shipping->id
         ]);
+    }
+
+    public function test_it_attaches_the_products_to_the_order()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+
+        list($address, $shipping) = $this->orderDependencies($user);
+
+        $response = $this->jsonAs($user, "POST", 'api/orders', [
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id
+        ]);
+
+        $this->assertDatabaseHas('product_variation_order', [
+            'product_variation_id' => $product->id
+        ]);
+    }
+
+    protected function productWithStock()
+    {
+        $product = factory(ProductVariation::class)->create();
+
+        factory(Stock::class)->create([
+            'product_variation_id' => $product->id
+        ]);
+
+        return $product;
     }
 
     protected function orderDependencies(User $user)

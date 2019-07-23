@@ -6,7 +6,7 @@
 - [85-Creating an order](#section-4)
 - [86-Revisiting orders and product relations](#section-5)
 - [87-Fixing cart store failing test](#section-6)
-- [88-Attaching products when ordering](#section-8)
+- [88-Attaching products when ordering](#section-7)
 - [89-Refactoring to a custom collection](#section-8)
 - [90-Failing if the cart is empty](#section-9)
 - [91-Emptying the cart when ordering](#section-10)
@@ -594,4 +594,101 @@ class OrderController extends Controller
     }
 }
 
+```
+
+<a name="section-7"></a>
+
+## Episode-88 Attaching products when ordering
+
+`1` - Edit `app/Http/Controllers/Orders/OrderController.php`
+
+- Filtering the user's ordered products and storing to product_variation_order __pivot__ table
+
+```php
+public function store(OrderStoreRequest $request, Cart $cart)
+    {
+        $order = $this->createOrder($request, $cart);
+
+        $products = $cart->products()->keyBy('id')->map(function ($product) {
+            return [
+                'quantity' => $product->pivot->quantity
+            ];
+        })->toArray();
+
+        $order->products()->sync($products);
+    }
+```
+
+`2` - Edit `app/Cart/Cart.php`
+
+```php
+...
+    public function products()
+    {
+        return $this->user->cart;
+    }
+...
+```
+
+`3` - Edit `tests/Unit/Cart/CartTest.php`
+
+```php
+...
+    public function test_it_returns_products_in_cart()
+    {
+        $cart = new Cart(
+            $user = factory(User::class)->create()
+        );
+
+        $user->cart()->attach(
+            $product = factory(ProductVariation::class)->create([
+                'price' => 1000
+            ]),
+            [
+                'quantity' => 2
+            ]
+        );
+
+        $this->assertInstanceOf(ProductVariation::class, $cart->products()->first());
+    }
+...
+```
+
+`4` - Edit `tests/Feature/Orders/OrderStoreTest.php`
+
+```php
+use App\Models\Stock;
+use App\Models\ProductVariation;
+...
+public function test_it_attaches_the_products_to_the_order()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+
+        list($address, $shipping) = $this->orderDependencies($user);
+
+        $response = $this->jsonAs($user, "POST", 'api/orders', [
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id
+        ]);
+
+        $this->assertDatabaseHas('product_variation_order', [
+            'product_variation_id' => $product->id
+        ]);
+    }
+
+    protected function productWithStock()
+    {
+        $product = factory(ProductVariation::class)->create();
+
+        factory(Stock::class)->create([
+            'product_variation_id' => $product->id
+        ]);
+
+        return $product;
+    }
+...
 ```
