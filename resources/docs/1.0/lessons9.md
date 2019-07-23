@@ -692,3 +692,98 @@ public function test_it_attaches_the_products_to_the_order()
     }
 ...
 ```
+
+<a name="section-8"></a>
+
+## Episode-89 Refactoring to a custom collection
+
+`1` - Edit `app/Http/Controllers/Orders/OrderController.php`
+
+```php
+...
+    public function store(OrderStoreRequest $request, Cart $cart)
+    {
+        $order = $this->createOrder($request, $cart);
+
+        $order->products()->sync($cart->products()->forSyncing());
+    }
+...
+```
+
+`2` - Edit `app/Models/ProductVariation.php`
+
+```php
+use App\Models\Collections\ProductVariationCollection;
+...
+    public function newCollection(array $models = [])
+    {
+        return new ProductVariationCollection($models);
+    }
+```
+
+`3` - Create folder `Colections` to `app/Models`
+
+`4` - Create new file `ProductVariationCollection.php` to `app/Models/Colections`
+
+`5` - Edit `app/Models/Colections/ProductVariationCollection.php`
+
+```php
+<?php
+
+namespace App\Models\Collections;
+
+use Illuminate\Database\Eloquent\Collection;
+
+class ProductVariationCollection extends Collection
+{
+    public function forSyncing()
+    {
+        return $this->keyBy('id')->map(function ($product) {
+            return [
+                'quantity' => $product->pivot->quantity
+            ];
+        })->toArray();
+    }
+}
+```
+
+`6` - Create new __Test__ `ProductVariationCollectionTest` this will be unit test
+
+```command
+php artisan make:test Collections\\ProductVariationCollectionTest --unit
+```
+
+`7` - Edit `tests/Unit/Collections/ProductVariationCollectionTest.php`
+
+```php
+<?php
+
+namespace Tests\Unit\Collections;
+
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\ProductVariation;
+use Illuminate\Foundation\Testing\WithFaker;
+
+class ProductVariationCollectionTest extends TestCase
+{
+    public function test_it_can_get_a_syncing_array()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->attach(
+            $product = factory(ProductVariation::class)->create(),
+            [
+                'quantity' => $quantity = 2
+            ]
+        );
+        $collection = new ProductVariationCollection($user->cart);
+
+        $this->assertEquals($collection->forSyncing(), [
+            $product->id => [
+                'quantity' => $quantity
+            ]
+        ]);
+    }
+}
+```

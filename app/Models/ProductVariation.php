@@ -8,14 +8,15 @@ use App\Models\Product;
 use App\Models\Traits\HasPrice;
 use App\Models\ProductVariationType;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Collections\ProductVariationCollection;
 
 class ProductVariation extends Model
 {
     use HasPrice;
-    
+
     public function getPriceAttribute($value)
     {
-        if($value === null){
+        if ($value === null) {
             return $this->product->price;
         }
         return new Money($value);
@@ -59,11 +60,16 @@ class ProductVariation extends Model
     public function stock()
     {
         return $this->belongsToMany(
-            ProductVariation::class, 'product_variation_stock_view'
+            ProductVariation::class,
+            'product_variation_stock_view'
         )->withPivot([
             'stock',
             'in_stock'
         ]);
     }
 
+    public function newCollection(array $models = [])
+    {
+        return new ProductVariationCollection($models);
+    }
 }
