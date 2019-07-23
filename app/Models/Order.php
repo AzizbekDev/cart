@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\User;
 use App\Models\Address;
 use App\Models\ShippingMethod;
+use App\Models\ProductVariation;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
@@ -42,5 +43,12 @@ class Order extends Model
     public function shippingMethod()
     {
         return $this->belongsTo(ShippingMethod::class);
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(ProductVariation::class, 'product_variation_order')
+            ->withPivot(['quantity'])
+            ->withTimestamps();
     }
 }

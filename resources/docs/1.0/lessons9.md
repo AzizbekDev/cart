@@ -426,7 +426,7 @@ class OrderController extends Controller
 
     protected function createOrder(Request $request)
     {
-        $request->user()->orders()->create(
+        return $request->user()->orders()->create(
             array_merge($request->only(['address_id', 'shipping_method_id']), [
                 'subtotal' => $this->cart->subtotal()->amount()
             ])
@@ -503,4 +503,60 @@ $factory->define(Order::class, function (Faker $faker) {
 
         return [$address, $shipping];
     }
+```
+
+<a name="section-5"></a>
+
+## Episode-86 Revisiting orders and product relations
+
+`1` - Edit `App\Models\Order`
+
+```php
+use App\Models\ProductVariation;
+...
+public function products()
+    {
+       return $this->belongsToMany(ProductVariation::class, 'product_variation_order')
+            ->withPivot(['quantity'])
+            ->withTimestamps();
+    }
+```
+
+`2` - Edit `tests/Unit/Models/Orders/OrderTest.php`
+
+```php
+use App\Models\ProductVariation;
+...
+    public function test_it_has_many_products()
+    {
+        $order = factory(Order::class)->create([
+            'user_id' => factory(User::class)->create()->id
+        ]);
+
+        $order->products()->attach(
+            factory(ProductVariation::class)->create(),
+            [
+                'quantity' => 1
+            ]
+        );
+
+        $this->assertInstanceOf(ProductVariation::class, $order->products->first());
+    }
+
+     public function test_it_has_a_quantity_attached_to_the_product()
+    {
+        $order = factory(Order::class)->create([
+            'user_id' => factory(User::class)->create()->id
+        ]);
+
+        $order->products()->attach(
+            factory(ProductVariation::class)->create(),
+            [
+                'quantity' => $quantity = 2
+            ]
+        );
+
+        $this->assertEquals($order->products->first()->pivot->quantity, $quantity);
+    }
+...
 ```
