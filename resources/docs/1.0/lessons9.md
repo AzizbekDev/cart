@@ -560,3 +560,38 @@ use App\Models\ProductVariation;
     }
 ...
 ```
+
+<a name="section-6"></a>
+
+## Episode-87 Fixing cart store failing test
+
+`1` - Edit `app/Http/Controllers/Orders/OrderController.php`
+
+- Removing from `__construct()` __Cart__ instance and injecting to __store__ method <br>
+and passing it to __createOrder__ method.
+
+```php
+...
+class OrderController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware(['auth:api']);
+    }
+
+    public function store(OrderStoreRequest $request, Cart $cart)
+    {
+        $this->createOrder($request, $cart);
+    }
+
+    protected function createOrder(Request $request, Cart $cart)
+    {
+        return $request->user()->orders()->create(
+            array_merge($request->only(['address_id', 'shipping_method_id']), [
+                'subtotal' => $cart->subtotal()->amount()
+            ])
+        );
+    }
+}
+
+```
