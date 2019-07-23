@@ -829,3 +829,116 @@ class ProductVariationCollectionTest extends TestCase
     }
 ...
 ```
+
+<a name="section-10"></a>
+
+## Episode-91 Emptying the cart when ordering
+
+`1` - Edit `app/Providers/EventServiceProvider.php`
+
+- Registered new __Events__ `OrderCreated` and __Listeners__ `EmptyCart`
+
+```php
+ protected $listen = [
+        Registered::class => [
+            SendEmailVerificationNotification::class,
+        ],
+        'App\Events\Order\OrderCreated' => [
+            'App\Listeners\Order\EmptyCart',
+        ]
+    ];
+```
+
+`2` - Generating new  __Events__ and __Listeners__
+
+```command
+php artisan event:generate
+```
+
+`3` - Edit `app/Http/Controllers/Orders/OrderController.php`
+
+```php
+use App\Events\Order\OrderCreated;
+...
+    public function store(OrderStoreRequest $request, Cart $cart)
+    {
+        ...
+
+        event(new OrderCreated($order));
+    }
+...
+```
+
+`4` - Edit `app/Listeners/Order/EmptyCart.php`
+
+```php
+<?php
+
+namespace App\Listeners\Order;
+
+use App\Cart\Cart;
+use App\Events\Order\OrderCreated;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class EmptyCart
+{
+    protected $cart;
+
+    public function __construct(Cart $cart)
+    {
+        $this->cart = $cart;
+    }
+
+    public function handle(OrderCreated $event)
+    {
+        $this->cart->empty();
+    }
+}
+```
+
+`5` - Edit `tests/Feature/Orders/OrderStoreTest.php`
+
+```php
+use App\Events\Order\OrderCreated;
+use Illuminate\Support\Facades\Event;
+...
+    public function test_it_fires_an_order_created_event()
+    {
+        Event::fake();
+
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+
+        list($address, $shipping) = $this->orderDependencies($user);
+
+        $response = $this->jsonAs($user, "POST", 'api/orders', [
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id
+        ]);
+
+        Event::assertDispatched(OrderCreated::class);
+    }
+
+        public function test_it_empties_the_cart_then_ordering()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+
+        list($address, $shipping) = $this->orderDependencies($user);
+
+        $response = $this->jsonAs($user, "POST", 'api/orders', [
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id
+        ]);
+
+        $this->assertEmpty($user->cart);
+    }
+...
+```
