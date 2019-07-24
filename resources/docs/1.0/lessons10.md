@@ -592,3 +592,66 @@ export const setMessage = (state, message) => {
  },
 ...
 ```
+
+<a name="section-6"></a>
+
+## Episode-97 Fixing the quantity UI bug
+
+`1` - Edit `resources/js/components/cart/CartOverviewProduct.vue`
+
+```js
+export default {
+...
+  data() {
+    return {
+      quantity: this.product.quantity
+    };
+  },
+  watch: {
+    quantity(quantity) {
+      this.update({ productId: this.product.id, quantity });
+    }
+  },
+...
+}
+```
+
+change to
+
+```js
+export default {
+  computed: {
+    quantity: {
+      get() {
+        return this.product.quantity;
+      },
+      set(quantity) {
+        this.update({ productId: this.product.id, quantity });
+      }
+    }
+  },
+  ...
+}
+```
+
+`2` - Edit `resources/js/pages/checkout/index.vue`
+
+- added `await` syntax
+
+```js
+methods: {
+...
+async order() {
+      this.submitting = true;
+      try {
+        await axios.post("api/orders", {
+        ...
+        });
+        ...
+      } catch (e) {
+        ...
+    }
+    ...
+},
+...
+```

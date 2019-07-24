@@ -119,7 +119,7 @@ export default {
     async order() {
       this.submitting = true;
       try {
-        axios.post("api/orders", {
+        await axios.post("api/orders", {
           ...this.form,
           shipping_method_id: this.shippingMethodId
         });
@@ -128,6 +128,7 @@ export default {
           name: "orders"
         });
       } catch (e) {
+        console.log(e.response);
         this.flash(e.response.data.message);
         this.getCart();
       }
