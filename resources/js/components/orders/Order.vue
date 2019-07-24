@@ -1,23 +1,47 @@
 <template>
   <tr>
-    <th scope="col">#1</th>
-    <th scope="col">2018-01-01</th>
+    <th scope="col">#{{ order.id }}</th>
+    <th scope="col">{{ order.created_at }}</th>
     <th scope="col">
-      <div>
+      <div v-for="product in products" :key="product.id">
         <a href="#">Product 1</a>
         <a href="#">Product 2</a>
       </div>
-      <template>and more</template>
+      <template v-if="moreProducts > 0">and {{ moreProducts }} more</template>
     </th>
-    <th scope="col">$30.00</th>
+    <th scope="col">{{ order.subtotal }}</th>
     <th scope="col">
-      <span class="text-danger">Pending</span>
+      <span :class="statusClass">{{ order.status }}</span>
     </th>
   </tr>
 </template>
 <script>
 export default {
-  //
+  data() {
+    return {
+      maxProducts: 2,
+      statusClass: {
+        "text-danger": this.order.status === "payment_faild",
+        "text-info":
+          this.order.status === "processing" || this.order.status === "pending",
+        "text-success": this.order.status === "complite"
+      }
+    };
+  },
+  props: {
+    order: {
+      required: true,
+      type: Object
+    }
+  },
+  computed: {
+    products() {
+      return this.order.products.slice(0, this.maxProducts);
+    },
+    moreProducts() {
+      return this.order.length - this.maxProducts;
+    }
+  }
 };
 </script>
 <style scoped>

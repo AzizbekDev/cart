@@ -903,3 +903,112 @@ export default {
 }
 </style>
 ```
+
+<a name="section-10"></a>
+
+## Episode-101 Listing through orders
+
+`1` - `resources/js/pages/orders/index.vue`
+
+```html
+<template>
+  <section id="order-wrapper">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h3 class="text-muted py-2">Your order</h3>
+          <article class="py-3 px-3" v-if="orders.length">
+            <table class="table table-hover">
+              <tbody>
+                <Order v-for="order in orders" :key="order.id" :order="order" />
+              </tbody>
+            </table>
+          </article>
+          <p v-else>You haven't ordered yet.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+<script>
+import Order from "../../components/orders/Order";
+export default {
+  data() {
+    return {
+      orders: []
+    };
+  },
+  components: {
+    Order
+  },
+  mounted() {
+    axios.get("api/orders").then(response => {
+      this.orders = response.data.data;
+    });
+  }
+};
+</script>
+<style scoped>
+article {
+  background-color: #cccccc0f;
+  border-left: 1px solid gray;
+}
+</style>
+```
+
+`2` - Edit `resources/js/components/orders/Order.vue`
+
+```html
+<template>
+  <tr>
+    <th scope="col">#{ order.id }</th>
+    <th scope="col">{ order.created_at }</th>
+    <th scope="col">
+      <div v-for="product in products" :key="product.id">
+        <a href="#">Product 1</a>
+      </div>
+      <template v-if="moreProducts > 0">and { moreProducts } more</template>
+    </th>
+    <th scope="col">{ order.subtotal }</th>
+    <th scope="col">
+      <span :class="statusClass">{ order.status }</span>
+    </th>
+  </tr>
+</template>
+<script>
+export default {
+  data() {
+    return {
+      maxProducts: 2,
+      statusClass: {
+        "text-danger": this.order.status === "payment_faild",
+        "text-info":
+          this.order.status === "processing" || this.order.status === "pending",
+        "text-success": this.order.status === "complite"
+      }
+    };
+  },
+  props: {
+    order: {
+      required: true,
+      type: Object
+    }
+  },
+  computed: {
+    products() {
+      return this.order.products.slice(0, this.maxProducts);
+    },
+    moreProducts() {
+      return this.order.length - this.maxProducts;
+    }
+  }
+};
+</script>
+<style scoped>
+.table th,
+.table td {
+  border-top: none;
+}
+</style>
+
+```

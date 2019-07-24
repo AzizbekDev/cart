@@ -4,13 +4,14 @@
       <div class="row">
         <div class="col-md-12">
           <h3 class="text-muted py-2">Your order</h3>
-          <article class="py-3 px-3">
+          <article class="py-3 px-3" v-if="orders.length">
             <table class="table table-hover">
               <tbody>
-                <Order />
+                <Order v-for="order in orders" :key="order.id" :order="order" />
               </tbody>
             </table>
           </article>
+          <p v-else>You haven't ordered yet.</p>
         </div>
       </div>
     </div>
@@ -19,8 +20,18 @@
 <script>
 import Order from "../../components/orders/Order";
 export default {
+  data() {
+    return {
+      orders: []
+    };
+  },
   components: {
     Order
+  },
+  mounted() {
+    axios.get("api/orders").then(response => {
+      this.orders = response.data.data;
+    });
   }
 };
 </script>
