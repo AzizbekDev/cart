@@ -7,7 +7,7 @@
 - [96-Alerting on checkout changes](#section-5)
 - [97-Fixing the quantity UI bug](#section-6)
 - [98-Orders endpoint](#section-7)
-- [99-Formatting order total and subtotal](#section-9)
+- [99-Formatting order total and subtotal](#section-8)
 - [100-Order index setup](#section-9)
 - [101-Listing through orders](#section-10)
 
@@ -751,4 +751,77 @@ class OrderIndexTest extends TestCase
             ]);
     }
 }
+```
+
+<a name="section-8"></a>
+
+## Episode-99 Formatting order total and subtotal
+
+`1` - Edit `app/Models/Order.php`
+
+```php
+use App\Cart\Money;
+...
+ public function getSubtotalAttribute($subtotal)
+    {
+        return new Money($subtotal);
+    }
+
+    public function total()
+    {
+        return $this->subtotal->add($this->shippingMethod->price);
+    }
+...
+```
+
+`2` - Edit `app/Http/Resources/OrderResource.php`
+
+```php
+    public function toArray($request)
+    {
+        return [
+            ...
+            'subtotal' => $this->subtotal->formatted(),
+            'total' => $this->total()->formatted(),
+            ...
+        ];
+    }
+```
+
+`3` - Edit `tests/Unit/Models/Orders/OrderTest.php`
+
+```php
+use App\Cart\Money;
+...
+    public function test_it_returns_a_money_instance_for_the_subtotal()
+    {
+        $order = factory(Order::class)->create([
+            'user_id' => factory(User::class)->create()->id
+        ]);
+
+        $this->assertInstanceOf(Money::class, $order->subtotal);
+    }
+
+    public function test_it_returns_a_money_instance_for_the_total()
+    {
+        $order = factory(Order::class)->create([
+            'user_id' => factory(User::class)->create()->id
+        ]);
+
+        $this->assertInstanceOf(Money::class, $order->total());
+    }
+
+    public function test_it_adds_shipping_onto_the_total()
+    {
+        $order = factory(Order::class)->create([
+            'user_id' => factory(User::class)->create()->id,
+            'subtotal' => 1000,
+            'shipping_method_id' => factory(ShippingMethod::class)->create([
+                'price' => 1000
+            ])
+        ]);
+
+        $this->assertEquals($order->total()->amount(), 2000);
+    }
+...
 ```

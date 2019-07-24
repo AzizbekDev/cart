@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Cart\Money;
 use App\Models\User;
 use App\Models\Address;
 use App\Models\ShippingMethod;
@@ -28,6 +29,16 @@ class Order extends Model
         static::creating(function ($order) {
             $order->status = self::PENDING;
         });
+    }
+
+    public function getSubtotalAttribute($subtotal)
+    {
+        return new Money($subtotal);
+    }
+
+    public function total()
+    {
+        return $this->subtotal->add($this->shippingMethod->price);
     }
 
     public function user()
