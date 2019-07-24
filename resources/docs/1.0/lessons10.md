@@ -825,3 +825,81 @@ use App\Cart\Money;
     }
 ...
 ```
+
+<a name="section-9"></a>
+
+## Episode-100 Order index setup  `Front-end`
+
+`1` - Edit `resources/js/pages/orders/index.vue`
+
+```html
+<template>
+  <section id="order-wrapper">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h3 class="text-muted py-2">Your order</h3>
+          <article class="py-3 px-3">
+            <table class="table table-hover">
+              <tbody>
+                <Order />
+              </tbody>
+            </table>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+<script>
+import Order from "../../components/orders/Order";
+export default {
+  components: {
+    Order
+  }
+};
+</script>
+<style scoped>
+article {
+  background-color: #cccccc0f;
+  border-left: 1px solid gray;
+}
+</style>
+```
+
+`2` - Create new folder `orders` in to `resources/js/components`
+
+`3` - Create new file `Order.vue` in to `resources/js/components/orders`
+
+`4` - Edit  `resources/js/components/orders/Order.vue`
+
+```html
+<template>
+  <tr>
+    <th scope="col">#1</th>
+    <th scope="col">2018-01-01</th>
+    <th scope="col">
+      <div>
+        <a href="#">Product 1</a>
+        <a href="#">Product 2</a>
+      </div>
+      <template>and more</template>
+    </th>
+    <th scope="col">$30.00</th>
+    <th scope="col">
+      <span class="text-danger">Pending</span>
+    </th>
+  </tr>
+</template>
+<script>
+export default {
+  //
+};
+</script>
+<style scoped>
+.table th,
+.table td {
+  border-top: none;
+}
+</style>
+```
