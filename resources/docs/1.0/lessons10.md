@@ -226,3 +226,238 @@ change route name to `orders`
 ```html
 <router-link class="btn btn-light" to="/orders" exact>Order</router-link>
 ```
+
+<a name="section-4"></a>
+
+## Episode-95 Warning users of cart changes, plus some refactoring
+
+`1` - Create new Middleware `Sync`
+
+```command
+php artisan make:middleware Cart\\Sync
+```
+`2` - Edit `app/Http/Middleware/Cart/Sync.php`
+
+```php
+<?php
+
+namespace App\Http\Middleware\Cart;
+
+use Closure;
+use App\Cart\Cart;
+
+class Sync
+{
+    protected $cart;
+    public function __construct(Cart $cart)
+    {
+        $this->cart = $cart;
+    }
+
+    public function handle($request, Closure $next)
+    {
+        $this->cart->sync();
+        if ($this->cart->hasChanged()) {
+            return response()->json([
+                'message' => 'Oh no, some items in your cart have changed. Pleace review these changes before placing your order.'
+            ], 409);
+        }
+        return $next($request);
+    }
+}
+```
+
+`3` - Edit `app/Http/Kernel.php`
+
+```php
+protected $routeMiddleware = [
+...
+'cart.sync' => \App\Http\Middleware\Cart\Sync::class,
+...
+```
+
+`4` - Edit `app/Http/Controllers/Orders/OrderController.php`
+
+- using `cart.sync` middleware in a __construct mehtod
+
+```php
+...
+public function __construct()
+    {
+        $this->middleware(['auth:api', 'cart.sync']);
+    }
+...
+```
+`5` - Create new middleware `ResponseIfEmpty`
+
+```command
+php artisan make:middleware Cart\\ResponseIfEmpty
+```
+
+`6` - Edit `app/Http/Middleware/Cart/ResponseIfEmpty.php`
+
+```php
+<?php
+
+namespace App\Http\Middleware\Cart;
+
+use Closure;
+use App\Cart\Cart;
+
+class ResponseIfEmpty
+{
+    protected $cart;
+
+    public function __construct(Cart $cart)
+    {
+        $this->cart = $cart;
+    }
+
+    public function handle($request, Closure $next)
+    {
+        if ($this->cart->isEmpty()) {
+            return response()->json([
+                'message' => 'Cart is empty'
+            ], 400);
+        }
+        return $next($request);
+    }
+}
+```
+
+`7` - Edit `app/Http/Kernel.php`
+
+```php
+protected $routeMiddleware = [
+...
+'cart.isnotempty' => \App\Http\Middleware\Cart\ResponseIfEmpty::class,
+...
+```
+
+`8` - Edit `app/Http/Controllers/Orders/OrderController.php`
+
+- using also `cart.isnotempty` middleware in a __construct mehtod
+
+```php
+  public function __construct()
+    {
+        $this->middleware(['auth:api', 'cart.sync', 'cart.isnotempty']);
+    }
+
+    public function store(OrderStoreRequest $request, Cart $cart)
+    {
+        $order = $this->createOrder($request, $cart);
+
+        $order->products()->sync($cart->products()->forSyncing());
+
+        event(new OrderCreated($order));
+
+        return new OrderResource($order);
+    }
+...
+```
+
+`9` - Edit `app/Providers/AppServiceProvider.php`
+
+- Fixing after setup new middleware occurse some errors
+
+```php
+...
+    public function register()
+    {
+        $this->app->singleton(Cart::class, function ($app) {
+            if ($app->auth->user()) {
+                $app->auth->user()->load([
+                    'cart.stock',
+                ]);
+            }
+            return new Cart($app->auth->user());
+        });
+    }
+...
+```
+
+`10` - Edit `app/Cart/Cart.php`
+
+```php
+...
+    public function __construct(User $user)
+    {
+        $this->user = $user;
+    }
+...
+```
+
+Change to
+
+```php
+...
+    public function __construct($user)
+    {
+        $this->user = $user;
+    }
+...
+```
+
+`11` - Edit  `tests/Feature/Orders/OrderStoreTest.php`
+
+- Fixing after setup new middleware occurse some errors
+
+```php
+...
+    public function test_it_requires_an_address()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+        ...
+    }
+    public function test_it_requires_an_address_that_exists()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+        ...
+    }
+    public function test_it_requires_an_address_that_belongs_to_user()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+        ...
+    }
+    public function test_it_requires_a_shipping_method()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+        ...
+    }
+     public function test_it_requires_a_shipping_method_that_exists()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+        ...
+    }
+    public function test_it_requires_a_shipping_method_valid_for_given_address()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+        ...
+    }
+...
+```
