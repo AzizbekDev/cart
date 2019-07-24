@@ -655,3 +655,100 @@ async order() {
 },
 ...
 ```
+
+<a name="section-7"></a>
+
+## Episode-98 Orders endpoint
+
+`1` - Edit `app/Http/Controllers/Orders/OrderController.php`
+
+```php
+...
+    public function __construct()
+    {
+        $this->middleware(['auth:api']);
+        $this->middleware(['cart.sync', 'cart.isnotempty'])->only('store');
+    }
+
+    public function index(Request $request)
+    {
+        $orders = $request->user()->orders()
+            ->with(['products', 'address', 'shippingMethod'])
+            ->latest()
+            ->paginate();
+        return OrderResource::collection($orders);
+    }
+...
+```
+
+`2` - Create new test `OrderIndexTest`
+
+```command
+php artisan make:test Orders\\OrderIndexTest
+```
+
+`3` - Edit `tests/Feature/Orders/OrderIndexTest.php`
+
+```php
+<?php
+
+namespace Tests\Feature\Orders;
+
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\Order;
+
+class OrderIndexTest extends TestCase
+{
+    public function test_it_fails_if_user_isnt_authenticated()
+    {
+        $this->json('GET', 'api/orders')
+            ->assertStatus(401);
+    }
+
+    public function test_it_returns_a_collection_of_orders()
+    {
+        $user = factory(User::class)->create();
+
+        $order = factory(Order::class)->create([
+            'user_id' => $user->id
+        ]);
+
+        $this->jsonAs($user, 'GET', 'api/orders')
+            ->assertJsonFragment([
+                'id' => $order->id
+            ]);
+    }
+
+    public function test_it_orders_by_the_latest_first()
+    {
+        $user = factory(User::class)->create();
+
+        $order = factory(Order::class)->create([
+            'user_id' => $user->id
+        ]);
+
+        $anotherOrder = factory(Order::class)->create([
+            'user_id' => $user->id,
+            'created_at' => now()->subDay()
+        ]);
+
+        $this->jsonAs($user, 'GET', 'api/orders')
+            ->assertSeeInOrder([
+                $order->created_at->toDateTimeString(),
+                $anotherOrder->created_at->toDateTimeString()
+            ]);
+    }
+
+    public function test_it_has_a_pagination()
+    {
+        $user = factory(User::class)->create();
+
+        $this->jsonAs($user, 'GET', 'api/orders')
+            ->assertJsonStructure([
+                'links',
+                'meta'
+            ]);
+    }
+}
+```

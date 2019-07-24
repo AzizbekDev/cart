@@ -13,7 +13,17 @@ class OrderController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth:api', 'cart.sync', 'cart.isnotempty']);
+        $this->middleware(['auth:api']);
+        $this->middleware(['cart.sync', 'cart.isnotempty'])->only('store');
+    }
+
+    public function index(Request $request)
+    {
+        $orders = $request->user()->orders()
+            ->with(['products', 'address', 'shippingMethod'])
+            ->latest()
+            ->paginate();
+        return OrderResource::collection($orders);
     }
 
     public function store(OrderStoreRequest $request, Cart $cart)
