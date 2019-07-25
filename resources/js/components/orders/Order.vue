@@ -17,21 +17,22 @@
     </th>
     <th scope="col">{{ order.subtotal }}</th>
     <th scope="col">
-      <span :class="statusClass">{{ order.status }}</span>
+      <component :is="order.status" />
     </th>
   </tr>
 </template>
 <script>
+import OrderStatusPaymentFailed from "./statuses/OrderStatus-payment_failed";
+import OrderStatusPending from "./statuses/OrderStatus-pending";
+
 export default {
+  components: {
+    payment_failed: OrderStatusPaymentFailed,
+    pending: OrderStatusPending
+  },
   data() {
     return {
-      maxProducts: 2,
-      statusClass: {
-        "text-danger": this.order.status === "payment_faild",
-        "text-info":
-          this.order.status === "processing" || this.order.status === "pending",
-        "text-success": this.order.status === "complite"
-      }
+      maxProducts: 2
     };
   },
   props: {

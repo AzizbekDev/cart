@@ -67,6 +67,72 @@ public function index(Request $request)
             slug: variation.product.slug
           }
         }"
-        >{{ variation.product.name }} ({{ variation.name }}) - {{ variation.type }}</router-link>
+        >{ variation.product.name } ({ variation.name }) - { variation.type }</router-link>
 ...
+```
+
+<a name="section-3"></a>
+
+## Episode-104 Refactoring statuses to dinamic components
+
+`1` - Edit  `resources/js/components/orders/Order.vue`
+
+```html
+...
+<th scope="col">
+ <span :class="statusClass">{ order.status }</span>
+</th>
+...
+```
+
+change to
+
+```html
+...
+<th scope="col">
+  <component :is="order.status" />
+</th>
+...
+```
+
+js part changes
+
+```js
+<script>
+import OrderStatusPaymentFailed from "./statuses/OrderStatus-payment_failed";
+import OrderStatusPending from "./statuses/OrderStatus-pending";
+export default {
+  components: {
+    payment_failed: OrderStatusPaymentFailed,
+    pending: OrderStatusPending
+  },
+  data() {
+    return {
+      maxProducts: 2
+    };
+  },
+...
+}
+```
+
+`2` - Create new folder `statuses` into `resources/js/components/orders`
+
+`3` - Create new file `OrderStatus-pending.vue` into `resources/js/components/orders/statuses`
+
+`4` - Create new file `OrderStatus-payment_failed.vue` into `resources/js/components/orders/statuses`
+
+`5` - Edit `resources/js/components/orders/statuses/OrderStatus-payment_failed.vue`
+
+```html
+<template>
+  <div class="text-danger">Payment failed</div>
+</template>
+```
+
+`6` - Edit `resources/js/components/orders/statuses/OrderStatus-pending.vue`
+
+```html
+<template>
+  <div class="text-info">Pending</div>
+</template>
 ```
