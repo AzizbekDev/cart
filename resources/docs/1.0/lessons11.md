@@ -18,7 +18,7 @@
 `1` -  Edit `app/Http/Resources/ProductVariationResource.php`
 
 ```php
-use App\Http\Resources\ProductIndexResource;
+use App\Models\User;
 ...
 return [
         ...
@@ -215,4 +215,180 @@ public function sync()
         });
     }
 ...
+```
+
+<a name="section-5"></a>
+
+## Episode-106 Setting up payment methods
+
+`1` - Create new model `PaymentMethod` with migrations
+
+```command
+php artisan make:model Models\\PaymentMethod -m
+```
+
+`2` - Edit ``
+
+```php
+...
+    public function up()
+    {
+        Schema::create('payment_methods', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->bigInteger('user_id')->unsigned()->index();
+            $table->string('cart_type')->nullable();
+            $table->string('last_four')->nullable();
+            $table->boolean('default')->default(true);
+            $table->string('provider_id')->unique();
+            $table->timestamps();
+        });
+
+        Schema::table('payment_methods', function (Blueprint $table) {
+            $table->foreign('user_id')->references('id')->on('users');
+        });
+    }
+...
+```
+
+`3` - Edit `app\Models\User.php`
+
+```php
+use App\Models\PaymentMethod;
+...
+public function paymentMethods()
+{
+    return $this->hasMany(PaymentMethod::class);
+}
+...
+```
+
+`4` - Edit `app/Models/PaymentMethod.php`
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use App\Http\Resources\ProductIndexResource;
+
+class PaymentMethod extends Model
+{
+    protected $fillable = [
+        'cart_type',
+        'last_four',
+        'provider_id',
+        'default'
+    ];
+
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($paymentMethod) {
+            if ($paymentMethod->default) {
+                $paymentMethod->user->paymentMethods()->update([
+                    'default' => false
+                ]);
+            }
+        });
+    }
+
+    public function setDefaultAttribute($value)
+    {
+        $this->attributes['default'] = ($value === 'true' || $value ? true : false);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+```
+
+`5` - Create new factory `PaymentMethodFactory`
+
+```command
+php artisan make:factory PaymentMethodFactory
+```
+
+`6` - Edit `database/factories/PaymentMethodFactory.php`
+
+```php
+<?php
+use App\Models\PaymentMethod;
+use Faker\Generator as Faker;
+
+$factory->define(PaymentMethod::class, function (Faker $faker) {
+    return [
+        'cart_type' => 'Visa',
+        'last_four' => '8434',
+        'provider_id' => str_random(10)
+    ];
+});
+```
+
+`7` - Edit `tests/Unit/Models/Users/UserTest.php`
+
+```php
+use App\Models\PaymentMethod;
+...
+public function test_it_has_many_payment_methods()
+    {
+        $user = factory(User::class)->create();
+
+        factory(PaymentMethod::class)->create([
+            'user_id' => $user->id
+        ]);
+
+        $this->assertInstanceOf(PaymentMethod::class, $user->paymentMethods->first());
+    }
+...
+```
+
+`8` - Create new test file `PaymentMethodTest` this will be unit test
+
+```command
+php artisan make:test Models\\PaymentMethods\\PaymentMethodTest --unit
+```
+
+`9` - Edit `tests/Unit/Models/PaymentMethods/PaymentMethodTest.php`
+
+```php
+<?php
+
+namespace Tests\Unit\Models\PaymentMethods;
+
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\PaymentMethod;
+
+class PaymentMethodTest extends TestCase
+{
+    public function test_it_belongs_to_user()
+    {
+        $paymentMethod = factory(PaymentMethod::class)->create([
+            'user_id' => factory(User::class)->create()->id
+        ]);
+
+        $this->assertInstanceOf(User::class, $paymentMethod->user);
+    }
+
+    public function test_it_sets_old_payment_method_to_not_default_when_creating()
+    {
+        $user = factory(User::class)->create();
+
+        $oldPaymentMethod = factory(PaymentMethod::class)->create([
+            'default' => true,
+            'user_id' => $user->id
+        ]);
+
+        factory(PaymentMethod::class)->create([
+            'default' => true,
+            'user_id' => $user->id
+        ]);
+
+        $this->assertEquals($oldPaymentMethod->fresh()->default, 0);
+    }
+}
 ```
