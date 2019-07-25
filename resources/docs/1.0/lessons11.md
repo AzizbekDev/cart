@@ -51,3 +51,22 @@ public function index(Request $request)
 }
 ```
 
+<a name="section-2"></a>
+
+## Episode-103 Updating product variations in orders `Front-end`
+
+`1` -  Edit `resources/js/components/orders/Order.vue`
+
+```html
+...
+<div v-for="variation in products" :key="variation.id">
+        <router-link
+          :to="{
+          name: 'products-slug',
+          params:{
+            slug: variation.product.slug
+          }
+        }"
+        >{{ variation.product.name }} ({{ variation.name }}) - {{ variation.type }}</router-link>
+...
+```

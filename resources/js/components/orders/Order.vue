@@ -3,9 +3,15 @@
     <th scope="col">#{{ order.id }}</th>
     <th scope="col">{{ order.created_at }}</th>
     <th scope="col">
-      <div v-for="product in products" :key="product.id">
-        <a href="#">Product 1</a>
-        <a href="#">Product 2</a>
+      <div v-for="variation in products" :key="variation.id">
+        <router-link
+          :to="{
+          name: 'products-slug',
+          params:{
+            slug: variation.product.slug
+          }
+        }"
+        >{{ variation.product.name }} ({{ variation.name }}) - {{ variation.type }}</router-link>
       </div>
       <template v-if="moreProducts > 0">and {{ moreProducts }} more</template>
     </th>
