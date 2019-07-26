@@ -1061,3 +1061,48 @@ return [
     ...
 ];
 ```
+
+<a name="section-10"></a>
+
+## Episode-111 Setting up Stripe
+
+`1` - Installing `Stripe PHP bindings`
+
+```command
+composer require stripe/stripe-php
+```
+
+`2` - Edit `config/services.php`
+
+```php
+...
+'stripe' => [
+        'secret' => env('STRIPE_SECRET'),
+    ],
+...
+```
+
+`3` - Edit `.env`
+
+- Get stripe Secret key here from => [STRIPE_SECRET](https://dashboard.stripe.com/test/apikeys)
+
+```php
+...
+STRIPE_SECRET=sk_test_zqELAKG23359rZDSDX34O1KIOSAD6wX435h8SZXCHj453GhS00Duz23ASDI
+```
+
+`4`- Edit `app/Providers/AppServiceProvider.php`
+
+- Registring Stripe Service to boot method
+
+```php
+use Stripe\Stripe;
+...
+public function boot()
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+      ...
+    }
+...
+```
+

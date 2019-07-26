@@ -19,6 +19,10 @@ Create a robust e-commerce platform with Laravel and Vue. Products with flexible
 ---
 
 - Laravel 5.8 version
+    - stripe-php
+    - larecipe
+    - jwt-auth
+    - phpunit
 - Vue.js
     - Vuex
     - Router
