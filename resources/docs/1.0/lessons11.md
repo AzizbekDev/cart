@@ -711,7 +711,6 @@ article {
 </style>
 ```
 
-
 `4` - Create new file `PaymentMethodSelector.vue` into `resources/js/components/checkout/paymentMethods`
 
 `5` - Edit `resources/js/components/checkout/paymentMethods/PaymentMethodSelector.vue`
@@ -817,4 +816,248 @@ export default {
   }
 ...
 </script>
+```
+
+<a name="section-9"></a>
+
+## Episode-110 Attaching payment methods to order
+
+`1` - Create new migration file `add_payment_method_id_to_orders_table`
+
+```command
+php artisan make:migration add_payment_method_id_to_orders_table --table=orders
+```
+
+`2` - Edit `database/migrations/add_payment_method_id_to_orders_table.php`
+
+```php
+...
+    public function up()
+    {
+        Schema::table('orders', function (Blueprint $table) {
+            $table->bigInteger('payment_method_id')->unsigned()->index();
+            $table->foreign('payment_method_id')->references('id')->on('payment_methods');
+        });
+    }
+
+    public function down()
+    {
+        Schema::table('orders', function (Blueprint $table) {
+            $table->dropColumn('payment_method_id');
+        });
+    }
+...
+```
+
+`3` - Edit `app/Http/Controllers/Orders/OrderController.php`
+
+- added `payment_method_id` to request
+
+```php
+...
+protected function createOrder(Request $request, Cart $cart)
+    {
+        return $request->user()->orders()->create(
+            array_merge($request->only(['address_id', 'shipping_method_id', 'payment_method_id']), [
+                'subtotal' => $cart->subtotal()->amount()
+            ])
+        );
+    }
+...
+```
+
+`4` - Edit `app\Models\Order.php`
+
+```php
+...
+protected $fillable = [
+      ...
+      'payment_method_id'
+    ];
+...
+```
+
+`5` - Edit `app/Http/Requests/Orders/OrderStoreRequest.php`
+
+```php
+ return [
+      ...
+        'payment_method_id' => [
+            'required',
+            Rule::exists('payment_methods', 'id')->where(function ($builder) {
+                $builder->where('user_id', $this->user()->id);
+            })
+        ],
+        ...
+    ];
+```
+
+`6` - Edit `tests/Feature/Orders/OrderStoreTest.php`
+
+```php
+use App\Models\PaymentMethod;
+...
+ public function test_it_requires_a_payment_method()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+
+        $this->jsonAs($user, 'POST', 'api/orders')
+            ->assertJsonValidationErrors(['payment_method_id']);
+    }
+
+    public function test_it_requires_a_payment_method_that_belongs_to_the_authenticated_user()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+
+        $payment = factory(PaymentMethod::class)->create([
+            'user_id' => factory(User::class)->create()->id
+        ]);
+
+        $this->jsonAs($user, "POST", 'api/orders', [
+            'payment_method_id' => $payment->id
+        ])
+            ->assertJsonValidationErrors(['payment_method_id']);
+    }
+    public function test_it_can_create_an_order()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+
+        list($address, $shipping, $payment) = $this->orderDependencies($user);
+
+        $this->jsonAs($user, "POST", 'api/orders', [
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id,
+            'payment_method_id' => $payment->id
+        ]);
+
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $user->id,
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id,
+            'payment_method_id' => $payment->id
+        ]);
+    }
+
+    public function test_it_attaches_the_products_to_the_order()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+
+        list($address, $shipping, $payment) = $this->orderDependencies($user);
+
+        $response = $this->jsonAs($user, "POST", 'api/orders', [
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id,
+            'payment_method_id' => $payment->id
+        ]);
+
+        $this->assertDatabaseHas('product_variation_order', [
+            'product_variation_id' => $product->id,
+            'order_id' => json_decode($response->getContent())->data->id
+        ]);
+    }
+
+    public function test_it_fails_to_create_order_if_cart_is_empty()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync([
+            ($product = $this->productWithStock())->id => [
+                'quantity' => 0
+            ]
+        ]);
+
+        list($address, $shipping, $payment) = $this->orderDependencies($user);
+
+        $response = $this->jsonAs($user, 'POST', 'api/orders', [
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id,
+            'payment_method_id' => $payment->id
+        ])->assertStatus(400);
+    }
+
+    public function test_it_fires_an_order_created_event()
+    {
+        Event::fake();
+
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+
+        list($address, $shipping, $payment) = $this->orderDependencies($user);
+
+        $response = $this->jsonAs($user, "POST", 'api/orders', [
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id,
+            'payment_method_id' => $payment->id
+        ]);
+
+        Event::assertDispatched(OrderCreated::class, function ($event) use ($response) {
+            return $event->order->id === json_decode($response->getContent())->data->id;
+        });
+    }
+
+    public function test_it_empties_the_cart_then_ordering()
+    {
+        $user = factory(User::class)->create();
+
+        $user->cart()->sync(
+            $product = $this->productWithStock()
+        );
+
+        list($address, $shipping, $payment) = $this->orderDependencies($user);
+
+        $response = $this->jsonAs($user, "POST", 'api/orders', [
+            'address_id' => $address->id,
+            'shipping_method_id' => $shipping->id,
+            'payment_method_id' => $payment->id
+        ]);
+
+        $this->assertEmpty($user->cart);
+    }
+    ...
+    protected function orderDependencies(User $user)
+    {
+        $address = factory(Address::class)->create([
+            'user_id' => $user->id
+        ]);
+
+        $shipping = factory(ShippingMethod::class)->create();
+        $shipping->countries()->attach($address->country);
+
+        $payment = factory(PaymentMethod::class)->create([
+            'user_id' => $user->id
+        ]);
+
+        return [$address, $shipping, $payment];
+    }
+```
+
+`7` - Edit `database/factories/OrderFactory.php`
+
+```php
+return [
+    ...
+    'payment_method_id' => factory(PaymentMethod::class)->create([
+        'user_id' => factory(User::class)->create()->id
+    ])->id,
+    ...
+];
 ```
