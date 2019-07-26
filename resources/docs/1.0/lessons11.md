@@ -1093,7 +1093,7 @@ STRIPE_SECRET=sk_test_zqELAKG23359rZDSDX34O1KIOSAD6wX435h8SZXCHj453GhS00Duz23ASD
 
 `4`- Edit `app/Providers/AppServiceProvider.php`
 
-- Registring Stripe Service to boot method
+- Registering Stripe Service to boot method
 
 ```php
 use Stripe\Stripe;
@@ -1105,4 +1105,3 @@ public function boot()
     }
 ...
 ```
-
