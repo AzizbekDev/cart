@@ -490,3 +490,110 @@ class Address extends Model
     }
 }
 ```
+
+<a name="section-7"></a>
+
+## Episode-108 Payment method index endpoint
+
+`1` - Create new controller file `PaymentMethodController`
+
+```command
+php artisan make:controller PaymentMethods\\PaymentMethodController
+```
+
+`2` - Edit `routes/api.php`
+
+```php
+...
+Route::resource('payment-methods', 'PaymentMethods\PaymentMethodController');
+...
+```
+
+`3` - Edit `app/Http/Controllers/PaymentMethods/PaymentMethodController.php`
+
+```php
+<?php
+
+namespace App\Http\Controllers\PaymentMethods;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\PaymentMethodResource;
+
+class PaymentMethodController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware(['auth:api']);
+    }
+
+    public function index(Request $request)
+    {
+        return PaymentMethodResource::collection($request->user()->paymentMethods);
+    }
+}
+```
+
+`4` - Create new resouce file `PaymentMethodResouce`
+
+```command
+php artisan make:resource PaymentMethodResource
+```
+
+`5` - Edit `app/Http/Resources/PaymentMethodResource.php`
+
+```php
+...
+public function toArray($request)
+{
+    return [
+        'id' => $this->id,
+        'cart_type' => $this->cart_type,
+        'last_four' => $this->last_four,
+        'default' => $this->default
+    ];
+}
+...
+```
+
+`6` - Create new test file `PaymentMethodIndexTest` this will be feature test
+
+```command
+php artisan make:test PaymentMethods\\PaymentMethodIndexTest
+```
+
+`7` - Edit  `tests/Feature/PaymentMethods/PaymentMethodIndexTest.php`
+
+```php
+<?php
+
+namespace Tests\Feature\PaymentMethods;
+
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\PaymentMethod;
+
+class PaymentMethodIndexTest extends TestCase
+{
+    public function test_it_fails_if_not_authenticated()
+    {
+        $this->json('GET', 'api/payment-methods')
+            ->assertStatus(401);
+    }
+
+    public function test_it_returns_a_collection_of_payment_methods()
+    {
+        $user = factory(User::class)->create();
+
+
+        $payment = factory(PaymentMethod::class)->create([
+            'user_id' => $user->id
+        ]);
+
+        $this->jsonAs($user, 'GET', 'api/payment-methods')
+            ->assertJsonFragment([
+                'id' => $payment->id
+            ]);
+    }
+}
+```
