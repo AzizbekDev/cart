@@ -597,3 +597,224 @@ class PaymentMethodIndexTest extends TestCase
     }
 }
 ```
+
+<a name="section-8"></a>
+
+## Episode-109 Showing and switching payment methods `Front-end`
+
+`1` - Create new folder `PaymentMethods` into `resources/js/components/checkout`
+
+`2` - Create new file `PaymentMathods.vue` into `resources/js/components/checkout/paymentMethods`
+
+`3` - Edit `resources/js/components/checkout/paymentMethods/PaymentMethods.vue`
+
+```html
+<template>
+  <article class="pl-4">
+    <h3 class="text-muted pt-2 mb-3">Payment methods</h3>
+    <template v-if="selecting">
+      <PaymentMethodSelector
+        :payment-methods="paymentMethods"
+        :selected-payment-method="selectedPaymentMethod"
+        @click="paymentMethodSelected"
+      />
+    </template>
+    <template v-else-if="creating">Create new Payment method</template>
+    <template v-else>
+      <template v-if="selectedPaymentMethod">
+        <p>{ selectedPaymentMethod.cart_type } ending { selectedPaymentMethod.last_four }</p>
+        <br />
+      </template>
+      <template v-else>
+        <p>No payment method selected</p>
+        <br />
+      </template>
+      <div class="field">
+        <p>
+          <button
+            type="button"
+            @click.prevent="selecting = true"
+            class="btn btn-primary btn-sm"
+          >Change payment method</button>
+          <button
+            type="button"
+            @click.prevent="creating = true"
+            class="btn btn-primary btn-sm"
+          >Add a payment method</button>
+        </p>
+      </div>
+    </template>
+  </article>
+</template>
+```
+
+js part
+
+```js
+<script>
+import PaymentMethodSelector from "../paymentMethods/PaymentMethodSelector";
+export default {
+  props: {
+    paymentMethods: {
+      required: true,
+      type: Array
+    }
+  },
+  data() {
+    return {
+      selecting: false,
+      creating: false,
+      selectedPaymentMethod: null
+    };
+  },
+  components: {
+    PaymentMethodSelector
+  },
+  watch: {
+    defaultPaymentMethod(v) {
+      if (v) {
+        this.switchPaymentMethod(v);
+      }
+    },
+    selectedPaymentMethod(paymentMethod) {
+      this.$emit("input", paymentMethod.id);
+    }
+  },
+  computed: {
+    defaultPaymentMethod() {
+      return this.paymentMethods.find(a => a.default === 1);
+    }
+  },
+  methods: {
+    paymentMethodSelected(paymentMethod) {
+      this.switchPaymentMethod(paymentMethod);
+      this.selecting = false;
+    },
+    switchPaymentMethod(paymentMethod) {
+      this.selectedPaymentMethod = paymentMethod;
+    },
+    created(paymentMethod) {
+      this.paymentMethodSelected = paymentMethod;
+      this.creating = false;
+      this.switchPaymentMethod(paymentMethod);
+    }
+  }
+};
+</script>
+<style scoped>
+article {
+  border-left: 1px solid gray;
+}
+.field {
+  display: block;
+}
+</style>
+```
+
+
+`4` - Create new file `PaymentMethodSelector.vue` into `resources/js/components/checkout/paymentMethods`
+
+`5` - Edit `resources/js/components/checkout/paymentMethods/PaymentMethodSelector.vue`
+
+```html
+<template>
+  <table class="table table-hover">
+    <tbody>
+      <tr
+        v-for="paymentMethod in paymentMethods"
+        :key="paymentMethod.id"
+        :class="{'table-success': paymentMethod.id == selectedPaymentMethod.id }"
+      >
+        <td>
+          <p>{ paymentMethod.cart_type } ending ...{ paymentMethod.last_four }</p>
+        </td>
+        <td>
+          <a
+            href
+            class="btn btn-primary btn-sm"
+            role="button"
+            @click.prevent="$emit('click', paymentMethod)"
+          >Pay with this</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</template>
+```
+
+js part
+
+```js
+<script>
+export default {
+  props: {
+    paymentMethods: {
+      required: true,
+      type: Array
+    },
+    selectedPaymentMethod: {
+      required: true,
+      type: Object
+    }
+  },
+  data() {
+    return {
+      selectedAddressid: 1
+    };
+  }
+};
+</script>
+```
+
+`6` - Edit `resources/js/pages/checkout/index.vue`
+
+```html
+...
+ <PaymentMethods :payment-methods="paymentMethods" v-model="form.payment_method_id"></PaymentMethods>
+...
+```
+
+js part changes
+
+```js
+<script>
+import PaymentMethods from "../../components/checkout/paymentMethods/PaymentMethods";
+...
+export default {
+  data() {
+    return {
+      submitting: false,
+      address: [],
+      paymentMethods: [],
+      shippingMethods: [],
+      form: {
+        address_id: null,
+        payment_method_id: null
+      }
+    };
+  },
+  ...
+  components: {
+    CartOverView,
+    ShippingAddress,
+    PaymentMethods
+  },
+  methods: {
+    ...
+    async getPaymentMethods() {
+      const auth = {
+        headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+      };
+      let response = await axios.get("api/payment-methods", auth);
+      this.paymentMethods = response.data.data;
+    },
+    ...
+  },
+  ...
+  created() {
+    ...
+    this.getPaymentMethods();
+  }
+...
+</script>
+```

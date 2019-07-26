@@ -5,6 +5,9 @@
         <div class="col-md-8 order-md-1">
           <form class="needs-validation" novalidate>
             <ShippingAddress :addresses="address" v-model="form.address_id"></ShippingAddress>
+
+            <PaymentMethods :payment-methods="paymentMethods" v-model="form.payment_method_id"></PaymentMethods>
+
             <article class="pl-4" v-if="shippingMethodId">
               <h3 class="text-muted pt-2 mb-3">Shipping</h3>
               <div class="form-group">
@@ -59,15 +62,18 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 import ShippingAddress from "../../components/checkout/addresses/ShippingAddress";
+import PaymentMethods from "../../components/checkout/paymentMethods/PaymentMethods";
 import CartOverView from "../../components/cart/CartOverview";
 export default {
   data() {
     return {
       submitting: false,
       address: [],
+      paymentMethods: [],
       shippingMethods: [],
       form: {
-        address_id: null
+        address_id: null,
+        payment_method_id: null
       }
     };
   },
@@ -83,7 +89,8 @@ export default {
   },
   components: {
     CartOverView,
-    ShippingAddress
+    ShippingAddress,
+    PaymentMethods
   },
   computed: {
     ...mapGetters({
@@ -116,6 +123,13 @@ export default {
       let response = await axios.get("api/addresses", auth);
       this.address = response.data.data;
     },
+    async getPaymentMethods() {
+      const auth = {
+        headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+      };
+      let response = await axios.get("api/payment-methods", auth);
+      this.paymentMethods = response.data.data;
+    },
     async order() {
       this.submitting = true;
       try {
@@ -142,6 +156,7 @@ export default {
   },
   created() {
     this.getAddresses();
+    this.getPaymentMethods();
   }
 };
 </script>
