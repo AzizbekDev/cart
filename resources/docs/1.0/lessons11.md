@@ -392,3 +392,101 @@ class PaymentMethodTest extends TestCase
     }
 }
 ```
+
+<a name="section-6"></a>
+
+## Episode-107 Refactoring defaults to a trait
+
+`1` - Create new trait file `CanBeDefault` and edit `app/Models/Traits/CanBeDefault.php`
+
+```php
+<?php
+
+namespace App\Models\Traits;
+
+trait CanBeDefault
+{
+    public static function boot()
+    {
+        parent::boot();
+        static::creating(function ($address) {
+            if ($address->default) {
+                $address->newQuery()
+                ->where('user_id', $address->user->id)
+                ->update([
+                    'default' => false
+                ]);
+            }
+        });
+    }
+
+    public function setDefaultAttribute($value)
+    {
+        $this->attributes['default'] = ($value === 'true' || $value ? true : false);
+    }
+}
+```
+
+`2` - Edit `app/Models/PaymentMethod.php`
+
+```php
+<?php
+
+namespace App\Models;
+
+use App\Models\User;
+use App\Models\Traits\CanBeDefault;
+use Illuminate\Database\Eloquent\Model;
+
+class PaymentMethod extends Model
+{
+    use CanBeDefault;
+
+    protected $fillable = [
+        'cart_type',
+        'last_four',
+        'provider_id',
+        'default'
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+```
+
+`3` - Edit `app/Models/Address.php`
+
+```php
+<?php
+
+namespace App\Models;
+
+use App\Models\Traits\CanBeDefault;
+use Illuminate\Database\Eloquent\Model;
+
+class Address extends Model
+{
+    use CanBeDefault;
+
+    protected $fillable = [
+        'name',
+        'address_1',
+        'city',
+        'postal_code',
+        'country_id',
+        'default'
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function country()
+    {
+        return $this->hasOne(Country::class, 'id', 'country_id');
+    }
+}
+```

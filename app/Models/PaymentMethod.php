@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Models\User;
+use App\Models\Traits\CanBeDefault;
 use Illuminate\Database\Eloquent\Model;
 
 class PaymentMethod extends Model
 {
+    use CanBeDefault;
+
     protected $fillable = [
         'cart_type',
         'last_four',
@@ -14,23 +17,6 @@ class PaymentMethod extends Model
         'default'
     ];
 
-    public static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($paymentMethod) {
-            if ($paymentMethod->default) {
-                $paymentMethod->user->paymentMethods()->update([
-                    'default' => false
-                ]);
-            }
-        });
-    }
-
-    public function setDefaultAttribute($value)
-    {
-        $this->attributes['default'] = ($value === 'true' || $value ? true : false);
-    }
 
     public function user()
     {
