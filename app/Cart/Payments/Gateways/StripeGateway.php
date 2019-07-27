@@ -40,7 +40,7 @@ class StripeGateway implements Gateway
         return $customer;
     }
 
-    protected function getCustomer()
+    public function getCustomer()
     {
         return new StripeGatewayCustomer(
             $this,

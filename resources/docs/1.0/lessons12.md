@@ -559,6 +559,7 @@ components: {
   },
 ...
 ```
+
 <a name="section-5"></a>
 
 ## Episode-116 Event handler for processing the payment
@@ -637,5 +638,54 @@ public function test_it_belongs_to_a_payment_method()
 
     $this->assertInstanceOf(PaymentMethod::class, $order->paymentMethod);
 }
+...
+```
+
+<a name="section-6"></a>
+
+## Episode-117 Processing a payment
+
+`1` - Edit `app/Cart/Payments/Gateways/StripeGateway.php`
+
+- Change protected to public
+
+```php
+public function getCustomer(){
+    ...
+}
+```
+
+`2` - Edit `app/Listeners/Order/ProcessPayment.php`
+
+```php
+...
+public function handle(OrderCreated $event)
+    {
+        $order = $event->order;
+
+        $this->gateway->withUser($order->user)
+            ->getCustomer()
+            ->charge(
+                $order->paymentMethod,
+                $order->total()->amount()
+            );
+    }
+...
+```
+
+`3` - Edit `app/Cart/Payments/Gateways/StripeGatewayCustomer.php`
+
+```php
+use Stripe\Charge as StripeCharge;
+...
+ public function charge(PaymentMethod $cart, $amount)
+    {
+        StripeCharge::create([
+            'currency' => 'gbp',
+            'amount' => $amount,
+            'customer' => $this->customer->id,
+            'source' => $cart->provider_id
+        ]);
+    }
 ...
 ```
