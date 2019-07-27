@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Cart\Money;
 use App\Models\User;
 use App\Models\Address;
+use App\Models\PaymentMethod;
 use App\Models\ShippingMethod;
 use App\Models\ProductVariation;
 use Illuminate\Database\Eloquent\Model;
@@ -55,6 +56,11 @@ class Order extends Model
     public function shippingMethod()
     {
         return $this->belongsTo(ShippingMethod::class);
+    }
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 
     public function products()

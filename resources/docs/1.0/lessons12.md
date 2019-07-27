@@ -559,4 +559,83 @@ components: {
   },
 ...
 ```
+<a name="section-5"></a>
 
+## Episode-116 Event handler for processing the payment
+
+`1` - Edit `app/Providers/EventServiceProvider.php`
+
+- added new `ProcessPayment` listener
+
+```php
+...
+   protected $listen = [
+        ...
+        'App\Events\Order\OrderCreated' => [
+            'App\Listeners\Order\ProcessPayment',
+            ...
+        ]
+    ];
+...
+```
+
+`2` - Create new Listeners file `ProcessPayment.php` into `app/Listeners/Order`
+
+`3` - Edit `app/Listeners/Order/ProcessPayment.php`
+
+```php
+<?php
+
+namespace App\Listeners\Order;
+
+use App\Cart\Payments\Gateway;
+use App\Events\Order\OrderCreated;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class ProcessPayment implements ShouldQueue
+{
+    protected $gateway;
+
+    public function __construct(Gateway $gateway)
+    {
+        $this->gateway = $gateway;
+    }
+
+    public function handle(OrderCreated $event)
+    {
+        // with user x
+        // get customer
+        // charge
+    }
+}
+
+```
+
+`4` - Edit `app/Models/Order.php`
+
+```php
+use App\Models\PaymentMethod;
+...
+public function paymentMethod()
+{
+    return $this->belongsTo(PaymentMethod::class);
+}
+...
+```
+
+`5` - Edit `tests/Unit/Models/Orders/OrderTest.php`
+
+```php
+use App\Models\PaymentMethod;
+...
+public function test_it_belongs_to_a_payment_method()
+{
+    $order = factory(Order::class)->create([
+        'user_id' => factory(User::class)->create()->id
+    ]);
+
+    $this->assertInstanceOf(PaymentMethod::class, $order->paymentMethod);
+}
+...
+```
