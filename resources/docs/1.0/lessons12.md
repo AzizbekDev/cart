@@ -156,3 +156,163 @@ class StripeGatewayCustomer implements GatewayCustomer
     }
 }
 ```
+
+<a name="section-2"></a>
+
+## Episode-113 Storing a payment method
+
+`1` - Create new migration file `add_gateway_customer_id_to_users_table`
+
+```command
+php artisan make:migration add_gateway_customer_id_to_users_table --table=users
+```
+
+`2` - Edit `database/migrations/2019_08_05_072518_add_gateway_customer_id_to_users_table.php`
+
+```php
+...
+    public function up()
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('gateway_customer_id')->nullable();
+        });
+    }
+    public function down()
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('gateway_customer_id');
+        });
+    }
+...
+```
+
+`3` - Edit `app/Http/Controllers/PaymentMethods/PaymentMethodController.php`
+
+```php
+...
+public function index(Request $request)
+    {
+        return PaymentMethodResource::collection(
+            $request->user()->paymentMethods
+        );
+    }
+public function store(Request $request)
+    {
+        $cart = $this->gateway->withUser($request->user())
+            ->createCustomer()
+            ->addCart($request->token);
+
+        dd($cart);
+    }
+...
+```
+
+`4` - Edit `app/Models/User.php`
+
+- Added `gateway_customer_id` to fillable array
+
+```php
+...
+protected $fillable = [
+        'name', 'email', 'password', 'gateway_customer_id'
+    ];
+...
+```
+
+`5` - Edit `app/Cart/Payments/GatewayCustomer.php`
+
+```php
+...
+interface GatewayCustomer
+{
+   ...
+    public function addCart($token);
+    public function id();
+}
+```
+
+`6` - Edit `app/Cart/Payments/Gateways/StripeGatewayCustomer.php`
+
+```php
+use App\Cart\Payments\Gateway;
+use Stripe\Customer as StripeCustomer;
+...
+    protected $gateway;
+    protected $customer;
+
+    public function __construct(Gateway $gateway, StripeCustomer $customer)
+    {
+        $this->gateway = $gateway;
+        $this->customer = $customer;
+    }
+
+   ...
+
+    public function addCart($token)
+    {
+        $cart = $this->customer->sources->create([
+            'source' => $token,
+        ]);
+        $this->customer->default_source = $cart->id;
+
+        $this->customer->save();
+
+        $this->gateway->user()->paymentMethods()->create([
+            'cart_type' => $cart->brand,
+            'last_four' => $cart->last4,
+            'provider_id' => $cart->id,
+            'default' => true
+        ]);
+    }
+
+    public function id()
+    {
+        return $this->customer->id;
+    }
+...
+```
+
+`7` - Edit `app/Cart/Payments/Gateways/StripeGateway.php`
+
+```php
+use Stripe\Customer as StripeCustomer;
+...
+    public function user()
+    {
+        return $this->user;
+    }
+
+    public function createCustomer()
+    {
+        if ($this->user->gateway_customer_id) {
+            return $this->getCustomer();
+        }
+
+        $customer = new StripeGatewayCustomer(
+            $this,
+            $this->createStripeCustomer()
+        );
+
+        $this->user->update([
+            'gateway_customer_id' => $customer->id()
+        ]);
+
+        return $customer;
+    }
+
+    protected function getCustomer()
+    {
+        return new StripeGatewayCustomer(
+            $this,
+            StripeCustomer::retrieve($this->user->gateway_customer_id)
+        );
+    }
+
+    protected function createStripeCustomer()
+    {
+        return StripeCustomer::create([
+            'email' => $this->user->email
+        ]);
+    }
+...
+```

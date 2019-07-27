@@ -3,17 +3,46 @@
 namespace App\Cart\Payments\Gateways;
 
 use App\Models\PaymentMethod;
+use App\Cart\Payments\Gateway;
 use App\Cart\Payments\GatewayCustomer;
+use Stripe\Customer as StripeCustomer;
 
 class StripeGatewayCustomer implements GatewayCustomer
 {
+
+    protected $gateway;
+    protected $customer;
+
+    public function __construct(Gateway $gateway, StripeCustomer $customer)
+    {
+        $this->gateway = $gateway;
+        $this->customer = $customer;
+    }
+
     public function charge(PaymentMethod $cart, $amount)
     {
         // 
     }
 
-    public function addCard($token)
+    public function addCart($token)
     {
-        dd('add cart');
+        $cart = $this->customer->sources->create([
+            'source' => $token,
+        ]);
+        $this->customer->default_source = $cart->id;
+
+        $this->customer->save();
+
+        $this->gateway->user()->paymentMethods()->create([
+            'cart_type' => $cart->brand,
+            'last_four' => $cart->last4,
+            'provider_id' => $cart->id,
+            'default' => true
+        ]);
+    }
+
+    public function id()
+    {
+        return $this->customer->id;
     }
 }

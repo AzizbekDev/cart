@@ -19,7 +19,9 @@ class PaymentMethodController extends Controller
 
     public function index(Request $request)
     {
-        return PaymentMethodResource::collection($request->user()->paymentMethods);
+        return PaymentMethodResource::collection(
+            $request->user()->paymentMethods
+        );
     }
 
     /**
@@ -32,6 +34,8 @@ class PaymentMethodController extends Controller
     {
         $cart = $this->gateway->withUser($request->user())
             ->createCustomer()
-            ->addCard($request->token);
+            ->addCart($request->token);
+
+        dd($cart);
     }
 }
