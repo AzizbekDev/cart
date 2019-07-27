@@ -316,3 +316,150 @@ use Stripe\Customer as StripeCustomer;
     }
 ...
 ```
+
+<a name="section-3"></a>
+
+## Episode-114 Responding with a card and writing some tests
+
+`1` - Edit `app/Cart/Payments/Gateways/StripeGatewayCustomer.php`
+
+- added return to getting created paymentMethod instance
+
+```php
+...
+public function addCart($token)
+    {
+        return $this->gateway->user()->paymentMethods()->create([
+            'cart_type' => $cart->brand,
+            'last_four' => $cart->last4,
+            'provider_id' => $cart->id,
+            'default' => true
+        ]);
+    }
+...
+```
+
+`2` - Edit `app/Http/Controllers/PaymentMethods/PaymentMethodController.php`
+
+```php
+public function store(Request $request)
+    {
+        $this->validate($request, [
+            'token' => 'required'
+        ]);
+        ...
+        return new PaymentMethodResource($cart);
+    }
+```
+
+`3` - Create new test `PaymentMethodStoreTest`
+
+```command
+php artisan make:test PaymentMethods\\PaymentMethodStoreTest
+```
+
+`4` - Edit `tests/Feature/PaymentMethods/PaymentMethodStoreTest.php`
+
+```php
+<?php
+namespace Tests\Feature\PaymentMethods;
+
+use Tests\TestCase;
+use App\Models\User;
+
+class PaymentMethodStoreTest extends TestCase
+{
+    public function test_it_fails_if_not_authenticated()
+    {
+        $this->json("POST", "api/payment-methods")
+            ->assertStatus(401);
+    }
+
+    public function test_it_requires_a_token()
+    {
+        $user = factory(User::class)->create();
+
+        $this->jsonAs($user, "POST", "api/payment-methods")
+            ->assertJsonValidationErrors(['token']);
+    }
+
+    public function test_it_can_successfully_add_a_card()
+    {
+        $user = factory(User::class)->create();
+
+        $this->jsonAs($user, 'POST', 'api/payment-methods', [
+            'token' => 'tok_visa'
+        ]);
+
+        $this->assertDatabaseHas('payment_methods', [
+            'user_id' => $user->id,
+            'cart_type' => 'Visa',
+            'last_four' => '4242'
+        ]);
+    }
+
+    public function test_it_returns_the_created_card()
+    {
+        $user = factory(User::class)->create();
+
+        $this->jsonAs($user, 'POST', 'api/payment-methods', [
+            'token' => 'tok_visa'
+        ])
+            ->assertJsonFragment([
+                'cart_type' => 'Visa'
+            ]);
+    }
+
+    public function test_it_sets_the_created_card_as_default()
+    {
+        $user = factory(User::class)->create();
+
+        $response = $this->jsonAs($user, 'POST', 'api/payment-methods', [
+            'token' => 'tok_visa'
+        ]);
+        $this->assertDatabaseHas('payment_methods', [
+            'id' => json_decode($response->getContent())->data->id,
+            'default' => true
+        ]);
+    }
+}
+```
+
+`5` - Create new request file `PaymentMethodStoreRequest`
+
+```command
+php artisan make:request PaymentMethods\\PaymentMethodStoreRequest
+```
+
+`6` - Edit `app/Http/Requests/PaymentMethods/PaymentMethodStoreRequest.php`
+
+```php
+...
+    public function authorize()
+    {
+        return true;
+    }
+    public function rules()
+    {
+        return [
+            'token' => 'required'
+        ];
+    }
+...
+```
+
+`7` - Edit `app/Http/Controllers/PaymentMethods/PaymentMethodController.php`
+
+```php
+use App\Http\Requests\PaymentMethods\PaymentMethodStoreRequest;
+...
+public function store(PaymentMethodStoreRequest $request)
+    {
+        $cart = $this->gateway->withUser($request->user())
+            ->createCustomer()
+            ->addCart($request->token);
+
+        return new PaymentMethodResource($cart);
+    }
+...
+```

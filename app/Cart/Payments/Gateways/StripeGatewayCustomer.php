@@ -33,7 +33,7 @@ class StripeGatewayCustomer implements GatewayCustomer
 
         $this->customer->save();
 
-        $this->gateway->user()->paymentMethods()->create([
+        return $this->gateway->user()->paymentMethods()->create([
             'cart_type' => $cart->brand,
             'last_four' => $cart->last4,
             'provider_id' => $cart->id,

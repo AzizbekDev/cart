@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Cart\Payments\Gateway;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaymentMethodResource;
+use App\Http\Requests\PaymentMethods\PaymentMethodStoreRequest;
 
 class PaymentMethodController extends Controller
 {
@@ -30,12 +31,12 @@ class PaymentMethodController extends Controller
      * @param Request $request
      * @return $cart | instanceOf PaymentMethod::class
      */
-    public function store(Request $request)
+    public function store(PaymentMethodStoreRequest $request)
     {
         $cart = $this->gateway->withUser($request->user())
             ->createCustomer()
             ->addCart($request->token);
 
-        dd($cart);
+        return new PaymentMethodResource($cart);
     }
 }
