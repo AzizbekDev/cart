@@ -689,3 +689,147 @@ use Stripe\Charge as StripeCharge;
     }
 ...
 ```
+
+<a name="section-7"></a>
+
+## Episode-118 Handling a failed payment
+
+`1` - Edit `app/Cart/Payments/Gateways/StripeGatewayCustomer.php`
+
+```php
+use Exception;
+use App\Exceptions\PaymentFaildException;
+...
+
+public function charge(PaymentMethod $cart, $amount)
+    {
+        try {
+            StripeCharge::create([
+                'currency' => 'gbp',
+                'amount' => $amount,
+                'customer' => $this->customer->id,
+                'source' => $cart->provider_id
+            ]);
+        } catch (Exception $e) {
+            throw new PaymentFaildException();
+        }
+    }
+...
+
+```
+
+`2` - Create new Exception file `PaymentFaildException`
+
+```command
+    php artisan make:exception PaymentFaildException
+```
+
+`3` - Edit `app/Exceptions/PaymentFaildException.php`
+
+```php
+<?php
+
+namespace App\Exceptions;
+
+use Exception;
+
+class PaymentFaildException extends Exception
+{
+    //
+}
+```
+
+`4` - Edit `app/Listeners/Order/ProcessPayment.php`
+
+```php
+use App\Events\Order\OrderPaymentFaild;
+use App\Exceptions\PaymentFaildException;
+...
+
+public function handle(OrderCreated $event)
+{
+    $order = $event->order;
+
+    try {
+        $this->gateway->withUser($order->user)
+            ->getCustomer()
+            ->charge(
+                $order->paymentMethod,
+                $order->total()->amount()
+            );
+        // event
+    } catch (PaymentFaildException $e) {
+        event(new OrderPaymentFaild($order));
+    }
+}
+```
+
+`5` - Create new event file `OrderPaymentFaild`
+
+```command
+php artisan make:event Order\\OrderPaymentFaild
+```
+
+`6` - Edit `app/Events/Order/OrderPaymentFaild.php`
+
+```php
+<?php
+
+namespace App\Events\Order;
+
+
+use App\Models\Order;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Events\Dispatchable;
+
+class OrderPaymentFaild
+{
+    use Dispatchable, SerializesModels;
+
+    public $order;
+
+    public function __construct(Order $order)
+    {
+        $this->order = $order;
+    }
+}
+
+```
+
+`7` - Edit `app/Providers/EventServiceProvider.php`
+
+```php
+...
+ protected $listen = [
+     ...
+    'App\Events\Order\OrderPaymentFaild' => [
+        'App\Listeners\Order\MarkOrderPaymentFailed',
+    ]
+];
+...
+```
+
+`8` - Create new Listener file `MarkOrderFailed.php` into `app/Listeners/Order`
+
+`9` - Edit `app/Listeners/Order/MarkOrderPaymentFailed.php`
+
+```php
+<?php
+
+namespace App\Listeners\Order;
+
+use App\Models\Order;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class MarkOrderPaymentFailed
+{
+
+    public function handle($event)
+    {
+        $event->order->update([
+            'status' => Order::PAYMENT_FAILED
+        ]);
+    }
+}
+```

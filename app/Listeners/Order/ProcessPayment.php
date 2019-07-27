@@ -4,7 +4,9 @@ namespace App\Listeners\Order;
 
 use App\Cart\Payments\Gateway;
 use App\Events\Order\OrderCreated;
+use App\Events\Order\OrderPaymentFaild;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Exceptions\PaymentFaildException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class ProcessPayment implements ShouldQueue
@@ -30,11 +32,18 @@ class ProcessPayment implements ShouldQueue
     {
         $order = $event->order;
 
-        $this->gateway->withUser($order->user)
-            ->getCustomer()
-            ->charge(
-                $order->paymentMethod,
-                $order->total()->amount()
-            );
+        try {
+            $this->gateway->withUser($order->user)
+                ->getCustomer()
+                ->charge(
+                    $order->paymentMethod,
+                    $order->total()->amount()
+                );
+
+            //event
+
+        } catch (PaymentFaildException $e) {
+            event(new OrderPaymentFaild($order));
+        }
     }
 }
