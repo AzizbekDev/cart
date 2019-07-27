@@ -8,7 +8,9 @@
         @click="paymentMethodSelected"
       />
     </template>
-    <template v-else-if="creating">Create new Payment method</template>
+    <template v-else-if="creating">
+      <PaymentMethodCreator @cancel="creating = false" @added="created" />
+    </template>
     <template v-else>
       <template v-if="selectedPaymentMethod">
         <p>{{ selectedPaymentMethod.cart_type }} ending {{ selectedPaymentMethod.last_four }}</p>
@@ -24,6 +26,7 @@
             type="button"
             @click.prevent="selecting = true"
             class="btn btn-primary btn-sm"
+            v-if="paymentMethods.length"
           >Change payment method</button>
           <button
             type="button"
@@ -35,8 +38,12 @@
     </template>
   </article>
 </template>
+  </article>
+</template>
 <script>
 import PaymentMethodSelector from "../paymentMethods/PaymentMethodSelector";
+import PaymentMethodCreator from "../paymentMethods/PaymentMethodCreator";
+
 export default {
   props: {
     paymentMethods: {
@@ -52,7 +59,8 @@ export default {
     };
   },
   components: {
-    PaymentMethodSelector
+    PaymentMethodSelector,
+    PaymentMethodCreator
   },
   watch: {
     defaultPaymentMethod(v) {

@@ -22,8 +22,8 @@
       <CountryDropdown v-model="form.country_id" />
     </div>
     <div class="form-group">
-      <button class="btn btn-primary">Add address</button>
-      <button class="btn btn-default" @click.prevent="$emit('cancel')">Cencel</button>
+      <button type="button" class="btn btn-primary btn-sm">Add address</button>
+      <button type="button" class="btn btn-light btn-sm" @click.prevent="$emit('cancel')">Cencel</button>
     </div>
   </form>
 </template>
