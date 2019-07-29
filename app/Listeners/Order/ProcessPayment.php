@@ -3,6 +3,7 @@
 namespace App\Listeners\Order;
 
 use App\Cart\Payments\Gateway;
+use App\Events\Order\OrderPaid;
 use App\Events\Order\OrderCreated;
 use App\Events\Order\OrderPaymentFaild;
 use Illuminate\Queue\InteractsWithQueue;
@@ -40,9 +41,9 @@ class ProcessPayment implements ShouldQueue
                     $order->total()->amount()
                 );
 
-            //event
-
+            event(new OrderPaid($order));
         } catch (PaymentFaildException $e) {
+
             event(new OrderPaymentFaild($order));
         }
     }

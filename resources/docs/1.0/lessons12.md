@@ -833,3 +833,90 @@ class MarkOrderPaymentFailed
     }
 }
 ```
+
+<a name="section-8"></a>
+
+## Episode-119 Handling a successful payment
+
+`1` - Edit `app/Listeners/Order/ProcessPayment.php`
+
+```php
+use App\Events\Order\OrderPaid;
+...
+public function handle(OrderCreated $event)
+    {
+        ...
+        try {
+            ...
+            event(new OrderPaid($order));
+        } catch (PaymentFaildException $e) {
+            ...
+        }
+    }
+...
+```
+
+`2` - Create new file `OrderPaid.php` into `app/Events/Order`
+
+`3` - Edit `app/Events/Order/OrderPaid.php`
+
+```php
+<?php
+
+namespace App\Events\Order;
+
+
+use App\Models\Order;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Events\Dispatchable;
+
+class OrderPaid
+{
+    use Dispatchable, SerializesModels;
+
+    public $order;
+
+    public function __construct(Order $order)
+    {
+        $this->order = $order;
+    }
+}
+```
+
+`4` - Edit `app/Providers/EventServiceProvider.php`
+
+```php
+...
+protected $listen = [
+        ...
+        'App\Events\Order\OrderPaid' => [
+            'App\Listeners\Order\MarkOrderProcessing',
+        ]
+    ];
+...
+```
+
+`5` - Create new listener `MarkOrderProcessing.php` into `app/Listeners/Order`
+
+`6` - Edit `app/Listeners/Order/MarkOrderProcessing.php`
+
+```php
+<?php
+
+namespace App\Listeners\Order;
+
+use App\Models\Order;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class MarkOrderProcessing
+{
+
+    public function handle($event)
+    {
+        $event->order->update([
+            'status' => Order::PROCESSING
+        ]);
+    }
+}
+```
