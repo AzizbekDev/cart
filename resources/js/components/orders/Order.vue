@@ -23,11 +23,13 @@
 </template>
 <script>
 import OrderStatusPaymentFailed from "./statuses/OrderStatus-payment_failed";
+import OrderStatusProcessing from "./statuses/OrderStatus-processing";
 import OrderStatusPending from "./statuses/OrderStatus-pending";
 
 export default {
   components: {
-    payment_failed: OrderStatusPaymentFailed,
+    payment_faild: OrderStatusPaymentFailed,
+    processing: OrderStatusProcessing,
     pending: OrderStatusPending
   },
   data() {

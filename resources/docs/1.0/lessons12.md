@@ -920,3 +920,33 @@ class MarkOrderProcessing
     }
 }
 ```
+
+## Displaying a successful payment status `Front-end`
+
+`7` - Edit `resources/js/components/orders/Order.vue`
+
+- js part changes
+
+```js
+<script>
+import OrderStatusProcessing from "./statuses/OrderStatus-processing";
+...
+export default {
+  components: {
+    processing: OrderStatusProcessing,
+    ...
+  },
+  ...
+};
+</script>
+```
+
+`8` - Create new file `OrderStatus-processing.vue` into `resources/js/components/orders/statuses`
+
+`9` Edit - `resources/js/components/orders/statuses/OrderStatus-processing.vue`
+
+```html
+<template>
+  <div class="text-default">Processing</div>
+</template>
+```
