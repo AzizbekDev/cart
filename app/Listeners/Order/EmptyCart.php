@@ -3,9 +3,6 @@
 namespace App\Listeners\Order;
 
 use App\Cart\Cart;
-use App\Events\Order\OrderCreated;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
 class EmptyCart
 {
@@ -21,12 +18,11 @@ class EmptyCart
     }
 
     /**
-     * Handle the event.
+     * handling method
      *
-     * @param  OrderCreated  $event
      * @return void
      */
-    public function handle(OrderCreated $event)
+    public function handle()
     {
         $this->cart->empty();
     }

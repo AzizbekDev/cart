@@ -986,3 +986,149 @@ protected function orderDependencies(User $user)
 }
 ...
 ```
+
+<a name="section-10"></a>
+
+## Episode-121 Testing listeners
+
+`1` - Create new test file `EmptyCartListenerTest` with will be unit test
+
+```command
+php artisan make:test Listeners\\EmptyCartListenerTest --unit
+```
+
+`2` - Edit `tests/Unit/Listeners/EmptyCartListenerTest.php`
+
+```php
+<?php
+
+namespace Tests\Unit\Listeners;
+
+use App\Cart\Cart;
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\ProductVariation;
+use App\Listeners\Order\EmptyCart;
+
+class EmptyCartListenerTest extends TestCase
+{
+
+    public function test_is_should_clear_the_cart()
+    {
+        $cart = new Cart(
+            $user = factory(User::class)->create()
+        );
+
+
+        $user->cart()->attach(
+            $product = factory(ProductVariation::class)->create()
+        );
+
+        $listener = new EmptyCart($cart);
+
+        $listener->handle();
+
+        $this->assertEmpty($user->cart);
+    }
+}
+```
+
+`3` - Create new test file `MarkOrderPaymentFailedListenerTest` this will be unit test
+
+```command
+php artisan make:test Listeners\\MarkOrderPaymentFailedListenerTest --unit
+```
+
+`4` - Edit `tests/Unit/Listeners/MarkOrderPaymentFailedListenerTest.php`
+
+```php
+<?php
+namespace Tests\Unit\Listeners;
+
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\Order;
+use App\Events\Order\OrderPaymentFaild;
+use App\Listeners\Order\MarkOrderPaymentFailed;
+
+class MarkOrderPaymentFailedListenerTest extends TestCase
+{
+
+    public function test_marks_order_as_payment_failed()
+    {
+        $event = new OrderPaymentFaild(
+            $order = factory(Order::class)->create([
+                'user_id' => factory(User::class)->create()
+            ])
+        );
+
+        $listener = new MarkOrderPaymentFailed();
+
+        $listener->handle($event);
+
+        $this->assertEquals($order->fresh()->status, Order::PAYMENT_FAILED);
+    }
+}
+```
+
+`5` - Create new test file `MarkOrderProcessingListenerTest` this will be unit test
+
+```command
+php artisan make:test Listeners\\MarkOrderProcessingListenerTest --unit
+```
+
+`6` - Edit `tests/Unit/Listeners/MarkOrderProcessingListenerTest.php`
+
+```php
+<?php
+
+namespace Tests\Unit\Listeners;
+
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\Order;
+use App\Events\Order\OrderPaid;
+use App\Listeners\Order\MarkOrderProcessing;
+
+class MarkOrderProcessingListenerTest extends TestCase
+{
+
+    public function test_it_marks_order_as_processing()
+    {
+        $event = new OrderPaid(
+            $order = factory(Order::class)->create([
+                'user_id' => factory(User::class)->create()
+            ])
+        );
+
+        $listener = new MarkOrderProcessing();
+
+        $listener->handle($event);
+
+        $this->assertEquals($order->fresh()->status, Order::PROCESSING);
+    }
+}
+```
+
+`7` - Edit `app/Listeners/Order/EmptyCart.php`
+
+```php
+<?php
+namespace App\Listeners\Order;
+
+use App\Cart\Cart;
+
+class EmptyCart
+{
+    protected $cart;
+    public function __construct(Cart $cart)
+    {
+        $this->cart = $cart;
+    }
+
+    public function handle()
+    {
+        $this->cart->empty();
+    }
+}
+```
