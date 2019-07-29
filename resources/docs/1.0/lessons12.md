@@ -950,3 +950,39 @@ export default {
   <div class="text-default">Processing</div>
 </template>
 ```
+
+<a name="section-9"></a>
+
+## Episode-120 Fixing failing 'cart empty' test
+
+`1` - Edit `tests/Feature/Orders/OrderStoreTest.php`
+
+```php
+...
+protected function orderDependencies(User $user)
+    {
+        // Create new stripe account
+        $stripeCustomer = \Stripe\Customer::create([
+            'email' => $user->email
+        ]);
+        // Update the user with a real stripe account
+        $user->update([
+            'gateway_customer_id' => $stripeCustomer->id
+        ]);
+
+        $address = factory(Address::class)->create([
+            'user_id' => $user->id
+        ]);
+
+        $shipping = factory(ShippingMethod::class)->create();
+        $shipping->countries()->attach($address->country);
+
+        $payment = factory(PaymentMethod::class)->create([
+            'user_id' => $user->id
+        ]);
+
+        return [$address, $shipping, $payment];
+    }
+}
+...
+```
