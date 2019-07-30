@@ -22,15 +22,17 @@
   </tr>
 </template>
 <script>
-import OrderStatusPaymentFailed from "./statuses/OrderStatus-payment_failed";
-import OrderStatusProcessing from "./statuses/OrderStatus-processing";
-import OrderStatusPending from "./statuses/OrderStatus-pending";
+import OrderStatusPaymentFailed from "./statuses/OrderStatusPaymentFailed";
+import OrderStatusProcessing from "./statuses/OrderStatusProcessing";
+import OrderStatusPending from "./statuses/OrderStatusPending";
+import OrderStatusCompleted from "./statuses/OrderStatusCompleted";
 
 export default {
   components: {
     payment_faild: OrderStatusPaymentFailed,
     processing: OrderStatusProcessing,
-    pending: OrderStatusPending
+    pending: OrderStatusPending,
+    completed: OrderStatusCompleted
   },
   data() {
     return {

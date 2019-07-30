@@ -234,3 +234,44 @@ export default function({ app, redirect, route })
     }
 }
 ```
+
+<a name="section-3"></a>
+
+## Episode-124 Tweaking order status components
+
+`1` - Create new file `OrderStatusCompleted.vue` into `resources/js/components/orders/statuses`
+
+`2` - Edit `resources/js/components/orders/statuses/OrderStatusCompleted.vue`
+
+```html
+<template>
+  <div class="text-success">Completed</div>
+</template>
+```
+
+`3` - Rename file name `OrderStatus-processing` => `OrderStatusProcessing`
+
+`4` - Rename file name `OrderStatus-pending` => `OrderStatusPending`
+
+`5` - Rename file name `OrderStatus-payment_failed` => `OrderStatusPaymentFailed`
+
+`6` - Edit `resources/js/components/orders/Order.vue`
+
+```js
+<script>
+import OrderStatusPaymentFailed from "./statuses/OrderStatusPaymentFailed";
+import OrderStatusProcessing from "./statuses/OrderStatusProcessing";
+import OrderStatusPending from "./statuses/OrderStatusPending";
+import OrderStatusCompleted from "./statuses/OrderStatusCompleted";
+
+export default {
+  components: {
+    payment_faild: OrderStatusPaymentFailed,
+    processing: OrderStatusProcessing,
+    pending: OrderStatusPending,
+    completed: OrderStatusCompleted
+  },
+  ...
+}
+</script>  
+```
