@@ -25,6 +25,9 @@ export default {
       orders: []
     };
   },
+  middleware: [
+   'auth'
+  ],
   components: {
     Order
   },

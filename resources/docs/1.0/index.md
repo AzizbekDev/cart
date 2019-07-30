@@ -6,5 +6,6 @@
     - [Episodes 92-101](/{{route}}/{{version}}/lessons10)
     - [Episodes 102-111](/{{route}}/{{version}}/lessons11)
     - [Episodes 112-121](/{{route}}/{{version}}/lessons12)
+    - [Episodes 122-125](/{{route}}/{{version}}/lessons13)
     - [Notes Laravel](/{{route}}/{{version}}/notes-laravel)
     - [Notes Vue](/{{route}}/{{version}}/notes-vue)

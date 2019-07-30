@@ -7,7 +7,7 @@
 
 <a name="section-1"></a>
 
-## Episode-122 
+## Episode-122 Using Mockery to test more complex listeners
 
 `1` - Create new test file `ProcessPaymentListenerTest` this will be unit test
 
@@ -132,6 +132,105 @@ class ProcessPaymentListenerTest extends TestCase
                 $customer = Mockery::mock(StripeGatewayCustomer::class)
             );
         return [$gateway, $customer];
+    }
+}
+```
+
+<a name="section-2"></a>
+
+## Episode-123 Client authentication middleware `Nuxt`
+
+`1` - Edit `resources/js/pages/orders/index.vue`
+
+```js
+<script>
+...
+middleware: [
+   'redirectIfGuest'
+  ],
+...
+</script>
+```
+
+`2` - Create new folder `middleware` into `resources/js`
+
+`3` - Create new file `redirectIfGuest.js` into `resources/js/middleware`
+
+`4` - Edit `resources/js/middleware/redirectIfGuest.js`
+
+```js
+export default function({app, redirect, route})
+{
+if(!app.$auth.loggedIn){
+    return redirect({
+        name: 'auth-signin',
+        query:{
+            redirect: route.fullPath
+        }
+    });
+}
+}
+```
+
+`5` - Edit `resources/js/pages/auth/Login.vue`
+
+```js
+<script>
+...
+    middleware:[
+        'redirectIfAuthenticated'
+    ],
+    methods: {
+    ...
+    async signin(){
+        await this.$auth.loginWith('local',{
+            data: this.form
+        })
+        if(this.$route.query.redirect){
+            this.$router.replace(this.$route.query.redirect)
+            return
+        }
+        this.$router.replace({
+            name: 'index'
+        })
+    }
+  },
+</script>
+```
+
+`6` - Edit `resources/js/pages/cart/index.vue`
+
+```js
+<script>
+...
+middleware:[
+    'redirectIfGuest'
+],
+...
+</script>
+```
+
+`7` - Edit `resources/js/pages/checkout/index.vue`
+
+```js
+<script>
+...
+middleware:[
+    'redirectIfGuest'
+],
+...
+</script>
+```
+
+`8` - Create new file and edit `redirectIfAuthenticated.js` into `resources/js/middleware`
+
+```js
+export default function({ app, redirect, route })
+{
+    if(app.$auth.loggedIn){
+        return redirect({
+            name: 'index'
+        })
     }
 }
 ```
